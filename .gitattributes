@@ -9,3 +9,5 @@
 Makefile text eol=lf
 bin/asmlab binary
 *.png binary
+bin/asmlab-debug binary
+*.json text eol=lf

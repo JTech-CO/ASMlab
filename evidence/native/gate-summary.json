@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "version": "0.1.1",
+  "status": "passed",
+  "executed_at_utc": "2026-09-23T02:18:59.713288+00:00",
+  "steps": [
+    {
+      "name": "release-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "release-audit",
+      "exit_code": 0
+    },
+    {
+      "name": "debug-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "debug-audit",
+      "exit_code": 0
+    },
+    {
+      "name": "native-contract",
+      "exit_code": 0
+    }
+  ],
+  "native_regression_counts": {
+    "release": 14410,
+    "debug": 14410
+  },
+  "remote_ci_executed": false,
+  "limitations": [
+    "Linux x86-64 process execution only; no other platform was tested by this gate.",
+    "Not a Level 3 runtime; libc and CRT are retained.",
+    "Not a Pi/ARM64, Windows-native or web-server implementation."
+  ],
+  "native_contract_count": 1254,
+  "total_assertions": 30074,
+  "failure_count": 0
+}

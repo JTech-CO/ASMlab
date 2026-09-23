@@ -1,4 +1,4 @@
-# ASMlab architecture / 아키텍처
+# ASMlab 0.1.1 architecture / 아키텍처
 
 ## 1. Execution path
 
@@ -37,7 +37,7 @@ The AST is not compiled to new native code. Its operators select existing kernel
 
 The authored application is `.asm`/`.inc` only. libc/CRT supplies the process entry path, buffered I/O, input file handles, decimal-string conversion, `strcmp`/`strlen`, and `memcpy`/`memset`. It supplies no application mathematical function. `tests/verify.py` uses Python math as an independent development reference; this must not be mistaken for a runtime dependency. `tools/validation_bridge.py` is also development-only.
 
-`readelf -d` and `nm -D --undefined-only` audit the executable's actual dependencies. In the delivered build, only `libc.so.6` is a `NEEDED` shared library. The dynamic loader and normal startup objects remain system dependencies.
+`readelf -d`, dynamic symbols and COPY relocations (including `stdin`) audit the executable's actual dependencies. In the delivered build, only `libc.so.6` is a `NEEDED` shared library. The dynamic loader and normal startup objects remain system dependencies.
 
 ## 3. Bounded layouts
 
@@ -97,7 +97,7 @@ Input streams are read through a bounded assembly loop around libc `fgetc`, rath
 
 ## 8. Build and portability boundaries
 
-NASM's `elf64` output is the intended native build path. The supplied executable was verified through the documented GNU assembler syntax bridge, not a completed NASM-native build. The target is little-endian Linux x86-64, libc/CRT, and the System V AMD64 calling convention. Native Windows requires a different object format, ABI, and OS adaptation; ARM requires different instructions and kernels. Those ports are absent.
+NASM's `elf64` output is the verified native build path in v0.1.1. Both supplied release/debug executables were assembled directly with NASM 2.16.03 and tested. The GNU assembler bridge is a separate optional historical comparison, never a fallback for the Native Gate. The target is little-endian Linux x86-64, libc/CRT, and the System V AMD64 calling convention. Native Windows requires a different object format, ABI, and OS adaptation; ARM requires different instructions and kernels. Those ports are absent. The future Pi/server plan is documentation only; see [plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md).
 
 The binary is deliberately non-PIE for straightforward address/disassembly inspection, with a non-executable stack, RELRO, and immediate binding. It is an educational bounded interpreter, not a security sandbox for hostile multi-user execution or a performance replacement for optimized numerical libraries.
 

@@ -1,0 +1,62 @@
+{
+  "baseline_zip_sha256": "71f487b896e46e85fdc57e882ecbb471fca378bef00025ea2f74455171678e24",
+  "runtime_source_changes": [
+    {
+      "path": "include/core.inc",
+      "baseline_sha256": "912eb45a388574fb327ae06b3f4f739c337be208b48a1be3d35f3e1c50c9f4e8",
+      "current_sha256": "912eb45a388574fb327ae06b3f4f739c337be208b48a1be3d35f3e1c50c9f4e8",
+      "changed": false
+    },
+    {
+      "path": "src/asmlab.asm",
+      "baseline_sha256": "ff25832eefc037dbb220f4d0816817328422fd42de7ac48d8873506b5515e5e1",
+      "current_sha256": "ff25832eefc037dbb220f4d0816817328422fd42de7ac48d8873506b5515e5e1",
+      "changed": false
+    },
+    {
+      "path": "src/evaluator.asm",
+      "baseline_sha256": "a07e41460ebd05775c53e9ef5064210d7b2c227839c96e668454022ceac8b051",
+      "current_sha256": "a07e41460ebd05775c53e9ef5064210d7b2c227839c96e668454022ceac8b051",
+      "changed": false
+    },
+    {
+      "path": "src/kernels.asm",
+      "baseline_sha256": "e8f89252dcd76c5845eeed9a4672597025a4f8415ec964c732b4ce46d0052c8f",
+      "current_sha256": "e8f89252dcd76c5845eeed9a4672597025a4f8415ec964c732b4ce46d0052c8f",
+      "changed": false
+    },
+    {
+      "path": "src/main.asm",
+      "baseline_sha256": "34d8a2cadc5aaea647ffb6389fb0cc338ea310be4e2c41ef91bf3483cd3c3856",
+      "current_sha256": "34d8a2cadc5aaea647ffb6389fb0cc338ea310be4e2c41ef91bf3483cd3c3856",
+      "changed": false
+    },
+    {
+      "path": "src/math.asm",
+      "baseline_sha256": "6a5c4b91aad5ce00a805a29b8b4fc7bd3287239cd831440e5b4133c78066c470",
+      "current_sha256": "6a5c4b91aad5ce00a805a29b8b4fc7bd3287239cd831440e5b4133c78066c470",
+      "changed": false
+    },
+    {
+      "path": "src/parser.asm",
+      "baseline_sha256": "cda3362ca7ae98427ac477acb508ec00729212954e7fdc31ab58336b902ba44d",
+      "current_sha256": "cda3362ca7ae98427ac477acb508ec00729212954e7fdc31ab58336b902ba44d",
+      "changed": false
+    },
+    {
+      "path": "src/runtime.asm",
+      "baseline_sha256": "e547455e56dba5d08556672e9850158dbafda7e216c07a8e60ef2605908b2acd",
+      "current_sha256": "e547455e56dba5d08556672e9850158dbafda7e216c07a8e60ef2605908b2acd",
+      "changed": false
+    },
+    {
+      "path": "src/view.asm",
+      "baseline_sha256": "a2f028a64e751ba80d191d72007d7cd33d1c5199b9f5fe650e5af9916a23ca38",
+      "current_sha256": "beba89bf523b52950a2e817ca4fffba96b8629ffdbaf90dec282a803fc345f75",
+      "changed": true
+    }
+  ],
+  "only_display_version_changed": true,
+  "original_regression_unchanged": true,
+  "original_regression_sha256": "1818494e4d83ef3b19faf0b6fd80e77b23550907c27d141a4baf8a56fc6de00b"
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "case_count": 6,
+  "failure_count": 0,
+  "checks": [
+    {
+      "name": "relocated_tree_with_spaces_verifies",
+      "passed": true
+    },
+    {
+      "name": "tampered_binary_is_rejected",
+      "passed": true
+    },
+    {
+      "name": "bridge_provenance_is_rejected",
+      "passed": true
+    },
+    {
+      "name": "changed_build_input_is_rejected",
+      "passed": true
+    },
+    {
+      "name": "missing_profile_metadata_is_rejected",
+      "passed": true
+    },
+    {
+      "name": "missing_nasm_fails_without_stale_release",
+      "passed": true
+    }
+  ]
+}

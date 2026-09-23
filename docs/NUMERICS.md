@@ -1,4 +1,4 @@
-# ASMlab 0.1.0 - numerical contract
+# ASMlab 0.1.1 - numerical contract
 
 This document describes the algorithms implemented in `src/math.asm` and `src/kernels.asm`. It is an implementation specification, not a claim of complete MATLAB compatibility or of correctly rounded elementary functions for every input.
 
@@ -77,7 +77,7 @@ The summation order therefore differs from a simple sequential scalar loop and m
 
 ## Accuracy evidence for the delivered executable
 
-The fixed-seed suite uses host Python's standard-library `math` as a reference. It is not a high-precision MPFR oracle. The results below refer only to the tested validation-bridge executable, not to an unexecuted NASM-native build.
+The fixed-seed suite uses host Python's standard-library `math` as a reference. It is not a high-precision MPFR oracle. The results below were reproduced on both directly NASM-built v0.1.1 profiles. The original 14,410-case regression script is unchanged from v0.1.0.
 
 | Function | Cases | Maximum observed absolute difference | Acceptance criterion |
 |---|---:|---:|---|
@@ -86,9 +86,9 @@ The fixed-seed suite uses host Python's standard-library `math` as a reference. 
 | log | 3,008 | 1.1368683772161603e-13 | Absolute difference <= 3e-13 |
 | sqrt | 1,004 | 0 in these samples | Relative difference <= 1e-15; exact comparison at zero |
 
-The full suite includes 11,835 numerical expression cases and additional functional, malformed-input, capacity, replay, and instruction-capture checks. Its 14,410 total checks passed. A single matrix case may compare multiple cells; counts here are test cases, not independent floating-point operations.
+The full suite includes 11,835 numerical expression cases and additional functional, malformed-input, capacity, replay, and instruction-capture checks. Its 14,410 total checks passed independently on release and debug. A separate 1,254-assertion Native Gate contract covers constant encoding, instruction bytes, captured state and profile parity. These additional checks do not expand the stated mathematical error guarantees. A single matrix case may compare multiple cells; counts here are test cases, not independent floating-point operations.
 
-No finite test sample establishes an all-input correctness theorem. In particular, zero observed square-root difference does not prove every behavior of the entire expression evaluator. See [VERIFICATION.md](VERIFICATION.md) and the machine-readable [verification report](../evidence/verification.json).
+No finite test sample establishes an all-input correctness theorem. In particular, zero observed square-root difference does not prove every behavior of the entire expression evaluator. See [VERIFICATION.md](VERIFICATION.md) and the machine-readable [verification report](../evidence/native/release-regression.json).
 
 ## Trace precision and performance interpretation
 

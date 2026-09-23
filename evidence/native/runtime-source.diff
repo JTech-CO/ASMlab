@@ -1,0 +1,10 @@
+--- v0.1.0/src/view.asm
++++ v0.1.1/src/view.asm
+@@ -1,6 +1,6 @@
+ ; Assembly-only terminal views and capture replay. No browser/JS renderer.
+ section .rodata
+-banner: db 'ASMlab 0.1.0 | NASM x86-64 | float64 | SSE2',0
++banner: db 'ASMlab 0.1.1 | NASM x86-64 | float64 | SSE2',0
+ rule: db '--------------------------------------------------------------------------',0
+ fmt_panel: db 10,'%s',10,0
+ fmt_panel_color: db 10,27,'[1;36m%s',27,'[0m',10,0

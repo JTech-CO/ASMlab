@@ -1,47 +1,48 @@
 NASM ?= nasm
-CC ?= gcc
+CC ?= cc
 PYTHON ?= python3
-ASM_SOURCES := $(wildcard src/*.asm) $(wildcard include/*.inc)
-NASMFLAGS := -f elf64 -g -F dwarf -Wall
-LDFLAGS := -no-pie -Wl,-z,noexecstack,-z,relro,-z,now
 
-.PHONY: all clean run demo test audit disasm validate-gas
-all: bin/asmlab
+.PHONY: all release debug run demo test native-gate verify audit disasm validate-gas clean
+all: release
 
-build/asmlab.o: $(ASM_SOURCES)
-	@mkdir -p build bin
-	$(NASM) $(NASMFLAGS) -I./ -o $@ src/asmlab.asm
+# Deliberately rebuild: changing a tool/profile cannot reuse stale artifacts.
+release:
+	$(PYTHON) tools/build_native.py --profile release --nasm "$(NASM)" --cc "$(CC)"
 
-bin/asmlab: build/asmlab.o
-	$(CC) $(LDFLAGS) -o $@ $<
-	@printf '%s\n' 'NASM native build' > bin/BUILD_ORIGIN.txt
+debug:
+	$(PYTHON) tools/build_native.py --profile debug --nasm "$(NASM)" --cc "$(CC)"
 
-run: all
+run: release
 	./bin/asmlab
 
-demo: all
+demo: release
 	./bin/asmlab --bits -f examples/walkthrough.asmlab
 
-test: all
-	$(PYTHON) tests/verify.py ./bin/asmlab
-	sh tests/audit.sh ./bin/asmlab
+test: native-gate
+native-gate: release debug
+	$(PYTHON) tools/native_gate.py --report-dir build/evidence
+
+# Verify the already delivered binaries and their provenance, without NASM.
+verify:
+	$(PYTHON) tools/native_gate.py --report-dir build/verify-existing
 
 audit:
 	sh tests/audit.sh ./bin/asmlab
+	sh tests/audit.sh ./bin/asmlab-debug
 
-disasm: all
-	objdump -d -Mintel bin/asmlab > build/asmlab.disassembly.txt
+disasm: release debug
+	objdump -d -Mintel bin/asmlab > build/release/asmlab.disassembly.txt
+	objdump -d -Mintel bin/asmlab-debug > build/debug/asmlab.disassembly.txt
 
-# Explicit local verification path only. This does NOT test NASM itself.
-# The runtime remains x86-64 machine code from the authored assembly routines.
+# Historical comparison only. NEVER part of all/test/native-gate/release.
 validate-gas:
-	@mkdir -p build bin
-	$(PYTHON) tools/validation_bridge.py . build/asmlab.validation.s
-	as --64 -g -o build/asmlab.validation.o build/asmlab.validation.s
-	$(CC) $(LDFLAGS) -o bin/asmlab-validation build/asmlab.validation.o
+	@mkdir -p build/validation bin
+	$(PYTHON) tools/validation_bridge.py . build/validation/asmlab.s
+	as --64 -g -o build/validation/asmlab.o build/validation/asmlab.s
+	$(CC) -no-pie -Wl,-z,noexecstack,-z,relro,-z,now -o bin/asmlab-validation build/validation/asmlab.o
 	$(PYTHON) tests/verify.py ./bin/asmlab-validation
 	sh tests/audit.sh ./bin/asmlab-validation
 
 clean:
 	rm -rf build
-	rm -f bin/asmlab bin/asmlab-validation bin/BUILD_ORIGIN.txt
+	rm -f bin/asmlab bin/asmlab-debug bin/asmlab-validation bin/*.build.json bin/BUILD_ORIGIN.txt

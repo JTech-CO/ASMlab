@@ -1,0 +1,532 @@
+ASMlab 0.1.1 | NASM x86-64 | float64 | SSE2
+Type :help for syntax. Try sqrt([1,4,9,16]) + 2
+
+  input  x = 3
+
+01 / AST   syntax tree -> evaluated shape
+  +- #001 assign x  -> 1 x 1
+    +- #000 number 3  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+  No watched arithmetic was required (literal, variable, or identity path).
+
+03 / RESULT   float64 workspace value
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |               3
+--------------------------------------------------------------------------
+
+  input  x^2 + 4^2
+
+01 / AST   syntax tree -> evaluated shape
+  +- #003 binary +  -> 1 x 1
+    +- #001 binary ^ (integer scalar)  -> 1 x 1
+      +- #000 variable x  -> 1 x 1
+      +- #002 number 2  -> 1 x 1
+    +- #005 binary ^ (integer scalar)  -> 1 x 1
+      +- #004 number 4  -> 1 x 1
+      +- #006 number 2  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #001 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    3 |                    0 ]
+  XMM1 source  [                    3 |                    0 ]
+  XMM0 after   [                    9 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #001 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    0 ]
+  XMM1 source  [                    9 |                    0 ]
+  XMM0 after   [                    9 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0003 | node #005 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    4 |                    0 ]
+  XMM1 source  [                    4 |                    0 ]
+  XMM0 after   [                   16 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0004 | node #005 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    0 ]
+  XMM1 source  [                   16 |                    0 ]
+  XMM0 after   [                   16 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0005 | node #003 | element 0 | active lanes 1/2
+  @0x0000000000401e35  addsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    9 |                    0 ]
+  XMM1 source  [                   16 |                    0 ]
+  XMM0 after   [                   25 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  5 / 5 captured frames shown; 5 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |              25
+--------------------------------------------------------------------------
+
+  input  sqrt([1,4,9,16]) + 2
+
+01 / AST   syntax tree -> evaluated shape
+  +- #006 binary +  -> 1 x 4
+    +- #000 call sqrt  -> 1 x 4
+      +- #001 matrix literal 1 x 4  -> 1 x 4
+        +- #002 number 1  -> 1 x 1
+        +- #003 number 4  -> 1 x 1
+        +- #004 number 9  -> 1 x 1
+        +- #005 number 16  -> 1 x 1
+    +- #007 number 2  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #000 | element 0 | active lanes 2/2
+  @0x0000000000401ead  sqrtpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    1 |                    4 ]
+  XMM0 after   [                    1 |                    2 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #000 | element 2 | active lanes 2/2
+  @0x0000000000401ead  sqrtpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    9 |                   16 ]
+  XMM0 after   [                    3 |                    4 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0003 | node #006 | element 0 | active lanes 2/2
+  @0x0000000000401e79  addpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    2 ]
+  XMM1 source  [                    2 |                    2 ]
+  XMM0 after   [                    3 |                    4 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0004 | node #006 | element 2 | active lanes 2/2
+  @0x0000000000401e79  addpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    3 |                    4 ]
+  XMM1 source  [                    2 |                    2 ]
+  XMM0 after   [                    5 |                    6 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  4 / 4 captured frames shown; 4 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 1 x 4 | float64 | display: 8 significant digits
+   0 |               3               4               5               6
+--------------------------------------------------------------------------
+
+  input  A = [1,2;3,4]
+
+01 / AST   syntax tree -> evaluated shape
+  +- #005 assign A  -> 2 x 2
+    +- #000 matrix literal 2 x 2  -> 2 x 2
+      +- #001 number 1  -> 1 x 1
+      +- #002 number 2  -> 1 x 1
+      +- #003 number 3  -> 1 x 1
+      +- #004 number 4  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+  No watched arithmetic was required (literal, variable, or identity path).
+
+03 / RESULT   float64 workspace value
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |               1               2
+   1 |               3               4
+--------------------------------------------------------------------------
+
+  input  B = [5,6;7,8]
+
+01 / AST   syntax tree -> evaluated shape
+  +- #005 assign B  -> 2 x 2
+    +- #000 matrix literal 2 x 2  -> 2 x 2
+      +- #001 number 5  -> 1 x 1
+      +- #002 number 6  -> 1 x 1
+      +- #003 number 7  -> 1 x 1
+      +- #004 number 8  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+  No watched arithmetic was required (literal, variable, or identity path).
+
+03 / RESULT   float64 workspace value
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |               5               6
+   1 |               7               8
+--------------------------------------------------------------------------
+
+  input  A*B
+
+01 / AST   syntax tree -> evaluated shape
+  +- #001 binary * (matrix/scalar)  -> 2 x 2
+    +- #000 variable A  -> 2 x 2
+    +- #002 variable B  -> 2 x 2
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #001 | element 0 | active lanes 2/2
+  @0x0000000000401e93  mulpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    2 ]
+  XMM1 source  [                    5 |                    7 ]
+  XMM0 after   [                    5 |                   14 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #001 | element 0 | active lanes 2/2
+  @0x0000000000401e79  addpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    5 |                   14 ]
+  XMM0 after   [                    5 |                   14 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0003 | node #001 | element 0 | active lanes 1/2
+  @0x0000000000401e35  addsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    5 |                   14 ]
+  XMM1 source  [                   14 |                   14 ]
+  XMM0 after   [                   19 |                   14 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0004 | node #001 | element 1 | active lanes 2/2
+  @0x0000000000401e93  mulpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    2 ]
+  XMM1 source  [                    6 |                    8 ]
+  XMM0 after   [                    6 |                   16 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0005 | node #001 | element 1 | active lanes 2/2
+  @0x0000000000401e79  addpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    6 |                   16 ]
+  XMM0 after   [                    6 |                   16 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0006 | node #001 | element 1 | active lanes 1/2
+  @0x0000000000401e35  addsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    6 |                   16 ]
+  XMM1 source  [                   16 |                   16 ]
+  XMM0 after   [                   22 |                   16 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  6 / 12 captured frames shown; 12 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |              19              22
+   1 |              43              50
+--------------------------------------------------------------------------
+
+  input  A.*B
+
+01 / AST   syntax tree -> evaluated shape
+  +- #001 binary .* (elementwise)  -> 2 x 2
+    +- #000 variable A  -> 2 x 2
+    +- #002 variable B  -> 2 x 2
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #001 | element 0 | active lanes 2/2
+  @0x0000000000401e93  mulpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    2 ]
+  XMM1 source  [                    5 |                    6 ]
+  XMM0 after   [                    5 |                   12 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #001 | element 2 | active lanes 2/2
+  @0x0000000000401e93  mulpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    3 |                    4 ]
+  XMM1 source  [                    7 |                    8 ]
+  XMM0 after   [                   21 |                   32 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  2 / 2 captured frames shown; 2 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |               5              12
+   1 |              21              32
+--------------------------------------------------------------------------
+
+  input  transpose(A)
+
+01 / AST   syntax tree -> evaluated shape
+  +- #000 call transpose  -> 2 x 2
+    +- #001 variable A  -> 2 x 2
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #000 | element 0 | active lanes 2/2
+  @0x0000000000401e25  movapd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    1 |                    0 ]
+  XMM0 after   [                    1 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #000 | element 2 | active lanes 2/2
+  @0x0000000000401e25  movapd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    2 |                    0 ]
+  XMM0 after   [                    2 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0003 | node #000 | element 1 | active lanes 2/2
+  @0x0000000000401e25  movapd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    3 |                    0 ]
+  XMM0 after   [                    3 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0004 | node #000 | element 3 | active lanes 2/2
+  @0x0000000000401e25  movapd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [                    4 |                    0 ]
+  XMM0 after   [                    4 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  4 / 4 captured frames shown; 4 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |               1               3
+   1 |               2               4
+--------------------------------------------------------------------------
+
+  input  sin(pi/4)
+
+01 / AST   syntax tree -> evaluated shape
+  +- #000 call sin  -> 1 x 1
+    +- #002 binary / (scalar divisor)  -> 1 x 1
+      +- #001 variable pi  -> 1 x 1
+      +- #003 number 4  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #002 | element 0 | active lanes 1/2
+  @0x0000000000401e5f  divsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [        3.14159265359 |                    0 ]
+  XMM1 source  [                    4 |                    0 ]
+  XMM0 after   [       0.785398163397 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [       0.785398163397 |                    0 ]
+  XMM1 source  [       0.636619772368 |                    0 ]
+  XMM0 after   [                  0.5 |                    0 ]
+  MXCSR 0x1f80 -> 0x1fa0
+
+  frame 0003 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [        1.57079632673 |                    0 ]
+  XMM0 after   [                    0 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0004 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e45  subsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [       0.785398163397 |                    0 ]
+  XMM1 source  [                    0 |                    0 ]
+  XMM0 after   [       0.785398163397 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0005 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    0 |                    0 ]
+  XMM1 source  [    6.07710050651e-11 |                    0 ]
+  XMM0 after   [                    0 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0006 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e45  subsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [       0.785398163397 |                    0 ]
+  XMM1 source  [                    0 |                    0 ]
+  XMM0 after   [       0.785398163397 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  6 / 24 captured frames shown; 24 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |      0.70710678
+--------------------------------------------------------------------------
+
+  input  cos(pi)
+
+01 / AST   syntax tree -> evaluated shape
+  +- #000 call cos  -> 1 x 1
+    +- #001 variable pi  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [        3.14159265359 |                    0 ]
+  XMM1 source  [       0.636619772368 |                    0 ]
+  XMM0 after   [                    2 |                    0 ]
+  MXCSR 0x1f80 -> 0x1fa0
+
+  frame 0002 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    2 |                    0 ]
+  XMM1 source  [        1.57079632673 |                    0 ]
+  XMM0 after   [        3.14159265347 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0003 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e45  subsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [        3.14159265359 |                    0 ]
+  XMM1 source  [        3.14159265347 |                    0 ]
+  XMM0 after   [    1.21541887665e-10 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0004 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    2 |                    0 ]
+  XMM1 source  [    6.07710050651e-11 |                    0 ]
+  XMM0 after   [     1.2154201013e-10 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0005 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e45  subsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [    1.21541887665e-10 |                    0 ]
+  XMM1 source  [     1.2154201013e-10 |                    0 ]
+  XMM0 after   [   -1.22464679908e-16 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0006 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [   -1.22464679908e-16 |                    0 ]
+  XMM1 source  [   -1.22464679908e-16 |                    0 ]
+  XMM0 after   [    1.49975978249e-32 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  6 / 25 captured frames shown; 25 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |              -1
+--------------------------------------------------------------------------
+
+  input  log(e)
+
+01 / AST   syntax tree -> evaluated shape
+  +- #000 call log  -> 1 x 1
+    +- #001 variable e  -> 1 x 1
+
+02 / EXECUTION   real instruction + captured XMM state
+
+  frame 0001 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e45  subsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [        1.35914091423 |                    0 ]
+  XMM1 source  [                    1 |                    0 ]
+  XMM0 after   [        0.35914091423 |                    0 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  frame 0002 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e35  addsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [        1.35914091423 |                    0 ]
+  XMM1 source  [                    1 |                    0 ]
+  XMM0 after   [        2.35914091423 |                    0 ]
+  MXCSR 0x1f80 -> 0x1fa0
+
+  frame 0003 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e5f  divsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [        0.35914091423 |                    0 ]
+  XMM1 source  [        2.35914091423 |                    0 ]
+  XMM0 after   [       0.152233769532 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0004 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [       0.152233769532 |                    0 ]
+  XMM1 source  [       0.152233769532 |                    0 ]
+  XMM0 after   [      0.0231751205858 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0005 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e52  mulsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                 0.04 |                    0 ]
+  XMM1 source  [      0.0231751205858 |                    0 ]
+  XMM0 after   [    0.000927004823433 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  frame 0006 | node #000 | element 0 | active lanes 1/2
+  @0x0000000000401e35  addsd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [    0.000927004823433 |                    0 ]
+  XMM1 source  [      0.0434782608696 |                    0 ]
+  XMM0 after   [       0.044405265693 |                    0 ]
+  MXCSR 0x1fa0 -> 0x1fa0
+
+  6 / 32 captured frames shown; 32 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+03 / RESULT   float64 workspace value
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |               1
+--------------------------------------------------------------------------
+
+WORKSPACE   persistent values (deep copied on assignment)
+
+  ans
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |               1
+
+  x
+  shape 1 x 1 | float64 | display: 8 significant digits
+   0 |               3
+
+  A
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |               1               2
+   1 |               3               4
+
+  B
+  shape 2 x 2 | float64 | display: 8 significant digits
+   0 |               5               6
+   1 |               7               8

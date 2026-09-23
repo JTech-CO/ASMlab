@@ -1,6 +1,8 @@
 /build/
 /bin/asmlab
+/bin/asmlab-debug
 /bin/asmlab-validation
+/bin/*.build.json
 /bin/BUILD_ORIGIN.txt
 __pycache__/
 *.core

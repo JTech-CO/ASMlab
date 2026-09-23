@@ -1,0 +1,34 @@
+$ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.1.1/bin/asmlab --report /mnt/data/ASMlab-v0.1.1/build/evidence/release-regression.json
+{
+  "case_count": 14410,
+  "failure_count": 0,
+  "groups": {
+    "sin": 3009,
+    "cos": 3009,
+    "log": 3008,
+    "sqrt": 1004,
+    "scalar_regression": 21,
+    "integer_power": 300,
+    "scalar_composition": 200,
+    "matrix_product": 160,
+    "elementwise": 640,
+    "transpose": 160,
+    "broadcast": 160,
+    "negation": 160,
+    "vector_functions": 4,
+    "rejected_inputs": 46,
+    "exit_status": 1,
+    "workspace": 6,
+    "whole_line_rejection": 3,
+    "signed_zero": 3,
+    "matrix_bounds": 1,
+    "trace_capacity": 1,
+    "register_capture": 1,
+    "instruction_address": 4,
+    "fuzz_batch": 1,
+    "malformed_fuzz": 2500,
+    "pty_replay": 4,
+    "io_cli": 4
+  },
+  "elapsed_seconds": 0.192
+}

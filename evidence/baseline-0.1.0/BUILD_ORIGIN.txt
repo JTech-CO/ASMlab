@@ -1,0 +1,16 @@
+ASMlab v0.1.0 - bundled executable provenance
+
+The bundled bin/asmlab executable was built in this session using:
+  tools/validation_bridge.py -> GNU as --64 -> GCC linker driver
+The authored application source is NASM x86-64 (.asm/.inc) only.
+The translation bridge changes assembler syntax; it is not part of the runtime.
+The exact bundled executable passed tests/verify.py and tests/audit.sh.
+
+NASM was unavailable in the authoring container; package/source downloads failed.
+A native NASM build was NOT executed in this session.
+Default `make` uses NASM directly, with no syntax bridge or Python dependency.
+The supplied GitHub Actions workflow is configured for native NASM validation,
+but it has NOT been run on GitHub as part of this delivery.
+
+Target of this binary: Linux x86-64, glibc >= 2.34; no libm/BLAS/LAPACK.
+Build from source on the target distribution for compatibility.

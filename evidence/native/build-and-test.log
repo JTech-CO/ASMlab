@@ -1,0 +1,55 @@
+python3 tools/build_native.py --profile release --nasm "nasm" --cc "cc"
+python3 tools/build_native.py --profile debug --nasm "nasm" --cc "cc"
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/asmlab.lst -o build/release/asmlab.o src/asmlab.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/asmlab.lst -o build/debug/asmlab.o src/asmlab.asm
++ cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now,--build-id=sha1 -Wl,-Map,build/release/asmlab.map -o bin/asmlab build/release/asmlab.o
++ cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now,--build-id=sha1 -Wl,-Map,build/debug/asmlab.map -o bin/asmlab-debug build/debug/asmlab.o
+Built bin/asmlab (release, NASM); SHA256 0e13e7ed198b3549cc33773d13ffe396a398bf4e46555f212505b6c5aa1b9ea9
+Built bin/asmlab-debug (debug, NASM); SHA256 9323899e0ae69cb6b0b43935e87f4419db956c003bcb4ada6afa5028868de93f
+python3 tools/native_gate.py --report-dir build/evidence
++ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.1.1/bin/asmlab --report /mnt/data/ASMlab-v0.1.1/build/evidence/release-regression.json
++ sh tests/audit.sh /mnt/data/ASMlab-v0.1.1/bin/asmlab
++ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.1.1/bin/asmlab-debug --report /mnt/data/ASMlab-v0.1.1/build/evidence/debug-regression.json
++ sh tests/audit.sh /mnt/data/ASMlab-v0.1.1/bin/asmlab-debug
++ /opt/pyvenv/bin/python3 tests/native_contract.py --report /mnt/data/ASMlab-v0.1.1/build/evidence/native-contract.json
+{
+  "schema_version": 1,
+  "version": "0.1.1",
+  "status": "passed",
+  "executed_at_utc": "2026-09-23T02:18:59.713288+00:00",
+  "steps": [
+    {
+      "name": "release-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "release-audit",
+      "exit_code": 0
+    },
+    {
+      "name": "debug-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "debug-audit",
+      "exit_code": 0
+    },
+    {
+      "name": "native-contract",
+      "exit_code": 0
+    }
+  ],
+  "native_regression_counts": {
+    "release": 14410,
+    "debug": 14410
+  },
+  "remote_ci_executed": false,
+  "limitations": [
+    "Linux x86-64 process execution only; no other platform was tested by this gate.",
+    "Not a Level 3 runtime; libc and CRT are retained.",
+    "Not a Pi/ARM64, Windows-native or web-server implementation."
+  ],
+  "native_contract_count": 1254,
+  "total_assertions": 30074,
+  "failure_count": 0
+}
