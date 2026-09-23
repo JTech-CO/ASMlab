@@ -34,7 +34,8 @@ def main():
     c.check('provenance',True,'all artifacts/input inventories validated before execution')
     rt_imports={'rt_console_format','rt_console_puts','rt_decimal_from_cstr','rt_input_close',
                 'rt_input_error','rt_input_getc','rt_input_gets','rt_input_open_read','rt_input_stdin',
-                'rt_is_tty','rt_memcpy','rt_memset','rt_output_flush','rt_strcmp','rt_strlen'}
+                'rt_is_tty','rt_memcpy','rt_memset','rt_strnlen','rt_memcmp','rt_output_flush','rt_strcmp','rt_strlen',
+                'rt_heap_alloc','rt_heap_free','rt_memory_set_limit','rt_memory_stats','rt_parse_u64'}
     core_paths=list((ROOT/'src').glob('*.asm'))+list((ROOT/'include').glob('*.inc'))+[ROOT/'include/rt/api.inc']
     forbidden=r'\b(call|jmp)\s+(?:printf|puts|fopen|fclose|fflush|fgetc|fgets|ferror|strtod|memcpy|memset|memcmp|memmove|strcmp|strlen|strnlen|isatty)\b|\[\s*stdin\s*\]'
     for path in core_paths:

@@ -1,48 +1,31 @@
-# ASMlab v0.3.0 architecture
+# ASMlab v0.4.0 architecture
 
-L3-Core, Linux x86-64; bounded single-process REPL, not a network service.
-
-## Production path
+L3-Core + Dynamic Workspace. Linux x86-64, single process/session, not a network service.
 
 ```text
-platform/linux/app_start.asm
-  _start → rt_host_init → main → rt_host_finish → exit_group
+_start → rt_host_init → main → temp_release/workspace_clear → rt_host_finish → exit_group
 
-src/asmlab.asm
-  core_storage + workspace + lexer/parser + evaluator
-  + math + observed SSE2 kernels + terminal views + main
-        │ runtime API
-        ├─ rt/primitives.asm
-        ├─ rt/integer.asm
-        ├─ rt/biguint.asm + decimal_parse.asm + decimal_format.asm
-        ├─ rt/console_format.asm
-        └─ rt/adapters/app_io.asm
-              └─ rt/fd_io.asm → platform/linux/syscalls.asm
+Parser → AST → Evaluator + workspace_functions
+                  │             │
+                  └── runtime.asm: 64-byte Value / ownership / atomic commit
+                         ├── per-expression bump arena
+                         ├── linked workspace symbols + owned value copies
+                         └── rt_heap_alloc/free
+                                └── platform/linux/virtual_memory.asm
+                                      mmap / munmap
+
+Numerical operations → descriptor.data → original observed SSE2 dispatch → real trace
+Views → preview/full export → own decimal / Writer → syscalls
 ```
 
-The core still forms one translation unit. Runtime modules are separate NASM objects. No dynamic loader, libc/CRT, external math library or test fixture is linked into the production image. `dev/runtime/libc_primitives.asm` + `rt/adapters/libc_io.asm` are a **development-only** comparison route, not a fallback selected at runtime.
+Production uses13 independently generated NASM objects and direct static GNU ld linking; the core remains one translation unit of assembly modules. No allocator from libc, CRT, external math library, test fixture or language runtime is linked into production. A separate libc comparison executable uses the same dynamic storage and numerical code with development I/O/primitive adapters.
 
-## Preserved contracts
+Values own contiguous f64 payloads. `rows*cols` is checked before allocating; element cap1,048,576 and default64MiB dynamic-mapping quota apply independently. A 48-byte symbol stores a name, persistent Value pointer and next pointer. Static `ans` starts at a static immutable zero descriptor. No user-symbol count cap remains; lookup is linear and every live symbol is charged.
 
-Float64 scalars/row-major matrices, dimensions1..16, deep-copy symbols, reserved `ans`, 512 AST nodes, fixed scratch value arena, bounded input and trace. Failed evaluation does not overwrite a variable or `ans`. `math.asm` and `kernels.asm` are unchanged from v0.2.0. The evaluator explicitly starts with MXCSR0x1f80 independently of parser conversion effects.
+Temporary arenas survive successful rendering/replay and expire on the next expression. Persistent symbols survive across expressions. Trace records copy register bits and contain no pointer into freed workspace payloads. Clear invalidates consumers before freeing. Commit allocates all new copies before publishing and then releases old values. See [detailed ownership and failure contracts](DYNAMIC-WORKSPACE-KR.md).
 
-Observation captures selected SSE2 instructions in precompiled kernels. Node ID, actual PC, active lanes, XMM before/source/after and MXCSR snapshots are stored before rendering. Replay is post-computation, not JIT or live stepping. Formatting does not recompute a numerical result or emulate an XMM value. The converter's multiword integer work is not part of the selected SSE2 trace.
+Existing exact decimal, blocking Reader/Writer, final flush errors and shared REPL/replay input are preserved. `math.asm` and the real instruction dispatch/capture prefix are identical to0.3.0; kernels following that prefix have descriptor address changes and a matrix-product work preflight. Constructor metadata/copy initialization is not full CPU tracing.
 
-## Decimal and UI
+Development artifacts add `dynamic-memory.so` to the previous no-libc primitive/fault/native-decimal fixtures. This fixture uses the actual mapping allocator plus a test ABI probe, not a production dependency. `decimal-adapter.so` and `asmlab-libc-reference` intentionally use libc. Python is build/test infrastructure only.
 
-Exact integer-based conversions are bounded by the existing127-byte token and binary64 range. Local stack scratch avoids shared decimal state. The original terminal layout uses a trusted, limited format interpreter backed by typed Writer operations. It is not a general printf engine. Replay and REPL share one Reader; calling `rt_input_stdin` does not reset it.
-
-The adapter has one script handle. Final cleanup checks buffered stdout errors and exits nonzero. No allocator, dynamic matrix descriptor, event loop, signal handler or external renderer is introduced.
-
-## Development artifacts
-
-- `asmlab` / `asmlab-debug`: full L3-Core production binaries.
-- `asmlab-libc-reference`: intentionally libc/CRT-linked comparison.
-- `asmlab-runtime-smoke`: independent integer/fd foundation demonstration.
-- `runtime-primitives.so`, `runtime-faults.so`, `decimal-native.so`: NASM test fixtures.
-- `decimal-adapter.so`: intentionally libc-linked conversion reference fixture.
-- Python scripts: build provenance and verification only.
-
-NASM/ld inputs and SHA256 are recorded in build sidecars. The gate inspects object membership and link arguments as well as ELF headers and process mappings; an empty-root test runs the full application without userspace libraries or shell. Neither checksum audits nor chroot imply a security certification.
-
-[ABI](RUNTIME-ABI.md) · [Decimal](DECIMAL-CONVERSION.md) · [Verification](VERIFICATION.md) · [Future plans](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)
+[ABI](RUNTIME-ABI.md) · [Language](LANGUAGE.md) · [Verification](VERIFICATION.md) · [Future Pi/web plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)

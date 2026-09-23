@@ -1,5 +1,20 @@
 # Changelog
 
+
+## v0.4.0 - Dynamic Workspace (2026-09-24)
+
+- Replaced inline16×16 Values with64-byte descriptors and contiguous dynamic payloads.
+- Added quota-accounted anonymous mmap allocator and per-expression bump arenas; persistent symbols/values have explicit independent ownership. Default64MiB, configurable1..1024MiB.
+- Removed63-user-variable cap; added linked workspace entries, `:memory`, `:drop NAME`, complete dynamic release on`:clear` and normal exit.
+- Transactional commit stages a new symbol, target and `ans` before publishing; late allocation failure preserves old target/ans and frees staged allocations.
+- Added multiargument `zeros/ones/eye/size/linspace` and1-based named two-dimensional read indexing. No slices/indexed assignment/empty arrays.
+- Added explicit per-value1,048,576-element and per-matmul16,777,216-term bounds. Large human-readable outputs use16×16 previews; JSON/quiet export full data.
+- Retained L3-Core static no-libc/no-CRT linking (13 NASM objects). `math.asm` and actual SSE2 dispatch/capture prefix unchanged; payload access follows descriptors.
+- Added independent allocator ABI tests, rollback/quota/kernel-allocation-failure tests,320variables, churn, replay lifetime, new syntax fuzz, extra empty-root execution and fail-closed artifact checks.
+- Local complete gate:186,731 assertions /0 failures; separate guards:32 /0. Counts include repeated profiles/corpus and ABI checks, not unique expressions/proofs.
+- Runtime remains Linux x86-64. ARM/Pi/server/graphics remain documentation-only. Remote CI was not executed.
+
+
 ## v0.3.0 - L3-Core (2026-09-23)
 
 ### Implemented

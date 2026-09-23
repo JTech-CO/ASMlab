@@ -1,3 +1,4 @@
+# First three groups completed; outer tool timeout interrupted the make batch before fourth completion.
 python3 tests/gate_guards.py --report build/gate-guards.json
 {
   "schema_version": 1,
@@ -33,7 +34,7 @@ python3 tests/gate_guards.py --report build/gate-guards.json
 python3 tests/runtime_gate_guards.py --report build/runtime-gate-guards.json
 {
   "schema_version": 1,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "case_count": 9,
   "failure_count": 0,
   "checks": [
@@ -114,6 +115,48 @@ python3 tests/l3_guards.py --report build/l3-gate-guards.json
     },
     {
       "name": "missing_nasm_clears_stale_l3_binary",
+      "passed": true
+    }
+  ]
+}
+python3 tests/dynamic_guards.py --report build/dynamic-gate-guards.json
+make: *** [Makefile:50: test-guards] Terminated
+
+# Separate completed dynamic guard run
+{
+  "case_count": 8,
+  "failure_count": 0,
+  "checks": [
+    {
+      "name": "relocated_dynamic_tree_verifies",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:bin/tests/dynamic-memory.so",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:build/release/rt-dynamic-memory.o",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:src/rt/dynamic_memory.asm",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:src/workspace_functions.asm",
+      "passed": true
+    },
+    {
+      "name": "libc_in_allocator_fixture_rejected",
+      "passed": true
+    },
+    {
+      "name": "missing_allocator_fixture_rejected",
+      "passed": true
+    },
+    {
+      "name": "hidden_libc_input_rejected",
       "passed": true
     }
   ]

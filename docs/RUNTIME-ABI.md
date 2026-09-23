@@ -1,4 +1,4 @@
-# ASMlab v0.3.0 Runtime ABI
+# ASMlab v0.4.0 Runtime ABI
 
 Implemented internal contract, Linux x86-64. Not a C standard-library replacement or a stable network API.
 
@@ -95,7 +95,26 @@ The existing quiet/JSON text contract is preserved. General language/CLI diagnos
 
 `start.asm` serves only `asmlab-runtime-smoke` and calls its separate `rt_program_main`.
 
-`dev/runtime/libc_primitives.asm` and `src/rt/adapters/libc_io.asm` are linked **only** into the explicit development comparison target. `decimal-adapter.so` retains libc; `decimal-native.so` and primitive/fault fixtures are test-only without external runtime imports. Python ctypes is the test host, not a numerical backend.
+`dev/runtime/libc_primitives.asm` and `src/rt/adapters/libc_io.asm` are linked **only** into the explicit development comparison target. `decimal-adapter.so` retains libc; `decimal-native.so` and primitive/fault/dynamic-memory fixtures are test-only without external runtime imports. Python ctypes is the test host, not a numerical backend.
+
+## Dynamic mapping API (v0.4.0)
+
+`src/rt/dynamic_memory.asm` is shared by the production app and a development-only fixture. It is single-threaded, not a general-purpose malloc ABI. Heap operations preserve SysV callee-saved registers, clear DF, and preserve all MXCSR bits. Invalid pointers or duplicate free are outside the contract.
+
+| API | Arguments | Return |
+|---|---|---|
+| `rt_heap_alloc` | positive payload byte count | RAX=16-byte aligned pointer, RDX=0; failure RAX=0/RDX=-errno |
+| `rt_heap_free` | own live pointer or NULL | RAX=0 on release/no-op; unexpected munmap failure exits2 |
+| `rt_memory_set_limit` | bytes1MiB..1GiB, at least live mapped bytes | RAX=0; -22 invalid, -16 below live |
+| `rt_memory_stats` | writable48bytes | RAX=0, six uint64s: used,peak,quota,live,maps,unmaps |
+| `rt_sys_mmap` | addr,len,prot,flags,fd,offset using SysV registers | raw pointer or negative Linux errno; RCX→R10 |
+| `rt_sys_munmap` | addr,len | raw Linux status |
+
+Each allocation owns one anonymous privateRW mapping, charged in4096-byte pages including a32-byte private header. Length/rounding/used additions are checked before mapping; invalid size0 is -22, arithmetic overflow -75, quota/kernel allocation failure negative errno. No MAP_NORESERVE/executable mapping is requested. Header contents are internal and not caller-mutable. Release accounting changes only after munmap succeeds. Counts refer to mappings, not application Value counts or physicalRSS.
+
+The application `value_allocate` additionally checks positive shape multiplication and at most1,048,576 elements before multiplication by8. Its64-byte descriptor and48-byte linked symbol layout are [specified here](DYNAMIC-WORKSPACE-KR.md). Temporary bump chunks and persistent copies share quota but not lifetime. `workspace_commit` stages all new state before publishing. No public/reentrant multi-session ABI or reference counting exists.
+
+Normal `main` return now releases temporary and persistent mappings before `rt_host_finish`; final output errors retain the earlier documented exit2 behavior. Kernel cleanup on abnormal signal/process exit is not an application-level rollback guarantee.
 
 ## References and evidence
 

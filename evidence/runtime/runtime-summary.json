@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "status": "passed",
-  "executed_at_utc": "2026-09-23T07:50:42.465432+00:00",
+  "executed_at_utc": "2026-09-23T22:32:26.444674+00:00",
   "steps": [
     {
       "name": "runtime-boundary",
@@ -22,7 +22,7 @@
     }
   ],
   "counts": {
-    "runtime-boundary": 716,
+    "runtime-boundary": 722,
     "runtime-unit": 26123,
     "libc-reference-regression": 14410
   },
@@ -30,6 +30,6 @@
     "The full native app and standalone smoke are libc-free; reference fixtures may use libc.",
     "No ARM64/server/graph implementation or hardware verification."
   ],
-  "total_assertions": 41249,
+  "total_assertions": 41255,
   "failure_count": 0
 }

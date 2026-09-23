@@ -1,0 +1,21 @@
+# v0.4.0 constructors, owned variables, indexing, and dynamic statistics.
+A = ones(32,48)
+B = A
+A = A + 2
+B(32,48)
+A(32,48)
+size(A)
+size(A,1)
+size(A,2)
+C = eye(19,23)
+C(19,19)
+x = linspace(-10,10,1001)
+y = sin(x)
+size(y)
+y(1,501)
+:memory
+:drop B
+:memory
+:clear
+:memory
+ans

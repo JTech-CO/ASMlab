@@ -1,0 +1,38 @@
+{
+  "baseline_version": "0.3.0",
+  "current_version": "0.4.0",
+  "baseline_archive_sha256": "52515207c7af79b7f4057da86920b8d3c2922673e4dc184952b066c4fd34da96",
+  "math_asm_byte_identical": true,
+  "watched_instruction_dispatch_prefix_byte_identical": true,
+  "kernels_whole_file_unchanged": false,
+  "changed_existing_assembly_sources": [
+    "src/asmlab.asm",
+    "src/core_storage.asm",
+    "src/evaluator.asm",
+    "src/kernels.asm",
+    "src/main.asm",
+    "src/parser.asm",
+    "src/runtime.asm",
+    "src/view.asm"
+  ],
+  "new_assembly_sources": [
+    "src/platform/linux/virtual_memory.asm",
+    "src/rt/dynamic_memory.asm",
+    "src/workspace_functions.asm"
+  ],
+  "intentional_contract_changes": [
+    "Dynamic contiguous descriptor, not fixed inline 16x16 storage.",
+    "Quota-limited linked symbols, not 63 user entries.",
+    "Constructors, size and named 1-based 2D read indexing.",
+    "Bounded display preview and per-product scalar-term limit."
+  ],
+  "regression_adjustments": [
+    "17-row and 17-column literals moved from rejection tests to accepted numeric tests; total remains 14410.",
+    "64th user-variable allocation is expected to succeed rather than fail."
+  ],
+  "not_claimed": [
+    "Complete kernels file identity",
+    "Formal semantic equivalence",
+    "Cross-architecture verification"
+  ]
+}

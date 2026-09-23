@@ -1,6 +1,6 @@
 ; Assembly-only terminal views and capture replay. No browser/JS renderer.
 section .rodata
-banner: db 'ASMlab 0.3.0 | NASM x86-64 | float64 | SSE2',0
+banner: db 'ASMlab 0.4.0 | NASM x86-64 | float64 | SSE2',0
 rule: db '--------------------------------------------------------------------------',0
 fmt_panel: db 10,'%s',10,0
 fmt_panel_color: db 10,27,'[1;36m%s',27,'[0m',10,0
@@ -17,6 +17,9 @@ fmt_astassign: db 'assign %s',0
 fmt_astbin: db 'binary %s',0
 fmt_astunary: db 'unary %c',0
 fmt_astcall: db 'call %s',0
+fmt_astindex: db 'index %s (1-based)',0
+preview_msg: db '  Preview limited to 16 rows x 16 columns; --json/--quiet output all elements.',0
+vars_preview_msg: db '  Workspace preview limited to 64 entries (ans, newest first).',0
 fmt_astmatrix: db 'matrix literal %ld x %ld',0
 fmt_astshape: db '  -> %ld x %ld',10,0
 fmt_astnl: db 10,0
@@ -118,10 +121,16 @@ draw_ast:
     je .unary
     cmp rax, MATRIX
     je .matrix
+    cmp rax, INDEX
+    je .index
     lea rdi, [fmt_astcall]
     mov rax, [r12+N_OP]
     lea rdx, [function_names]
     mov rsi, [rdx+rax*8]
+    jmp .print_label
+.index:
+    lea rdi, [fmt_astindex]
+    lea rsi, [r12+N_NAME]
     jmp .print_label
 .number:
     lea rdi, [fmt_astnum]
@@ -193,6 +202,10 @@ draw_ast:
     call rt_console_format
 .children:
     cmp qword [r12+N_TYPE], MATRIX
+    je .matrix_children
+    cmp qword [r12+N_TYPE], FUNC
+    je .matrix_children
+    cmp qword [r12+N_TYPE], INDEX
     je .matrix_children
     mov rdi, [r12+N_LEFT]
     lea rsi, [r13+1]
@@ -327,8 +340,17 @@ print_value_table:
     mov rdx, [r12+8]
     xor eax, eax
     call rt_console_format
+    cmp qword [r12], 16
+    ja .preview
+    cmp qword [r12+8], 16
+    jbe .start_table
+.preview:
+    SAY preview_msg
+.start_table:
     xor r13d, r13d
 .block:
+    cmp r13, 16
+    jae .done
     cmp r13, [r12+8]
     jae .done
     lea r14, [r13+4]
@@ -345,6 +367,8 @@ print_value_table:
 .rows:
     xor r15d, r15d
 .row:
+    cmp r15, 16
+    jae .nextblock
     cmp r15, [r12]
     jae .nextblock
     lea rdi, [fmt_row]
@@ -358,7 +382,8 @@ print_value_table:
     mov rax, r15
     imul rax, [r12+8]
     add rax, rbx
-    movsd xmm0, [r12+16+rax*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rax*8]
     lea rdi, [fmt_cell]
     mov eax, 1
     call rt_console_format
@@ -404,7 +429,8 @@ print_value_plain:
     xor eax, eax
     call rt_console_format
 .number:
-    movsd xmm0, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rbx*8]
     lea rdi, [fmt_plainnum]
     mov eax, 1
     call rt_console_format
@@ -443,7 +469,8 @@ print_json:
     call rt_console_format
 .number:
     lea rdi, [fmt_plainnum]
-    movsd xmm0, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rbx*8]
     mov eax, 1
     call rt_console_format
     inc rbx
@@ -514,20 +541,63 @@ render_workspace:
     FRAME 0
     lea rdi, [p_workspace]
     call panel
+    lea r12, [symbols]
     xor ebx, ebx
 .loop:
-    cmp rbx, [symbol_count]
-    jae .done
-    imul rax, rbx, SS
-    lea r12, [symbols+rax]
+    test r12, r12
+    jz .done
+    cmp rbx, 64
+    jae .truncated
     lea rdi, [fmt_varname]
     mov rsi, r12
     xor eax, eax
     call rt_console_format
-    lea rdi, [r12+32]
+    mov rdi, [r12+S_VALUE]
     call print_value_table
+    mov r12, [r12+S_NEXT]
     inc rbx
     jmp .loop
+.truncated:
+    SAY vars_preview_msg
+.done:
+    DONE
+
+section .rodata
+fmt_memory_json: db '{"memory":{"used_bytes":%ld,"peak_bytes":%ld,"limit_bytes":%ld,"live_mappings":%ld,',0
+fmt_memory_end: db '"maps":%ld,"unmaps":%ld,"user_variables":%ld}}',10,0
+fmt_memory_text: db 'MEMORY  mapped %ld bytes | peak %ld | quota %ld | mappings %ld',10,0
+fmt_memory_text_end: db '  successful maps %ld | unmaps %ld | user variables %ld',10,0
+memory_note: db '  Quota charges dynamic page-rounded storage, not fixed BSS/stack/RSS.',0
+section .text
+render_memory:
+    FRAME 48
+    mov rdi, rsp
+    call rt_memory_stats
+    lea rdi, [fmt_memory_text]
+    cmp qword [json_mode], 0
+    je .head
+    lea rdi, [fmt_memory_json]
+.head:
+    mov rsi, [rsp]
+    mov rdx, [rsp+8]
+    mov rcx, [rsp+16]
+    mov r8, [rsp+24]
+    xor eax, eax
+    call rt_console_format
+    lea rdi, [fmt_memory_text_end]
+    cmp qword [json_mode], 0
+    je .tail
+    lea rdi, [fmt_memory_end]
+.tail:
+    mov rsi, [rsp+32]
+    mov rdx, [rsp+40]
+    mov rcx, [symbol_count]
+    dec rcx
+    xor eax, eax
+    call rt_console_format
+    cmp qword [json_mode], 0
+    jne .done
+    SAY memory_note
 .done:
     DONE
 

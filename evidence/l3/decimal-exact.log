@@ -1,4 +1,4 @@
-$ /opt/pyvenv/bin/python3 tests/decimal_exact.py --report /mnt/data/ASMlab-v0.3.0/build/evidence/l3/decimal-exact.json
+$ /opt/pyvenv/bin/python3 tests/decimal_exact.py --report /mnt/data/ASMlab-v0.4.0/build/evidence/l3/decimal-exact.json
 {
   "case_count": 106439,
   "group_counts": {
@@ -19,13 +19,13 @@ $ /opt/pyvenv/bin/python3 tests/decimal_exact.py --report /mnt/data/ASMlab-v0.3.
   "failure_count": 0,
   "failures": [],
   "schema_version": 1,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "independent_cases": {
     "parse_cases": 10095,
     "format_cases": 14143,
     "roundtrip_cases": 14143
   },
-  "elapsed_seconds": 1.081,
+  "elapsed_seconds": 1.013,
   "oracle": "Exact rational neighboring-binary64 midpoint intervals; Decimal exact quantization; Python spelling cross-check.",
   "limitations": [
     "Finite corpus, not an exhaustive proof over all decimal inputs or all binary64 patterns.",
@@ -33,5 +33,5 @@ $ /opt/pyvenv/bin/python3 tests/decimal_exact.py --report /mnt/data/ASMlab-v0.3.
     "ctypes/Decimal/Fraction and protected-page setup belong to the test host only."
   ]
 }
-/mnt/data/ASMlab-v0.3.0/tests/decimal_exact.py:156: DeprecationWarning: This process (pid=4357) is multi-threaded, use of fork() may lead to deadlocks in the child.
+/mnt/data/ASMlab-v0.4.0/tests/decimal_exact.py:156: DeprecationWarning: This process (pid=6298) is multi-threaded, use of fork() may lead to deadlocks in the child.
   pid=os.fork()

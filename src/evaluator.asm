@@ -28,6 +28,8 @@ eval_node:
     je .unary
     cmp rax, FUNC
     je .function
+    cmp rax, INDEX
+    je .function
     cmp rax, ASSIGN
     je .assignment
     jmp .fail
@@ -38,7 +40,8 @@ eval_node:
     test rax, rax
     jz .fail
     mov rdx, [r12+N_NUM]
-    mov [rax+16], rdx
+    mov r10, [rax+V_DATA]
+    mov [r10], rdx
     jmp .finish
 .variable:
     lea rdi, [r12+N_NAME]
@@ -55,17 +58,10 @@ eval_node:
     call find_symbol
     test rax, rax
     jz .unknown
-    lea r13, [rax+32]
-    mov rdi, [r13]
-    mov rsi, [r13+8]
-    call new_value
-    test rax, rax
-    jz .fail
-    mov rdi, rax
-    mov rsi, r13
-    mov edx, VS
-    call rt_memcpy
+    mov rdi, [rax+S_VALUE]
+    call clone_temp
     jmp .finish
+
 .pi:
     lea r13, [pi]
     jmp .constant
@@ -78,7 +74,8 @@ eval_node:
     test rax, rax
     jz .fail
     mov rdx, [r13]
-    mov [rax+16], rdx
+    mov r10, [rax+V_DATA]
+    mov [r10], rdx
     jmp .finish
 .matrix:
     mov rdi, [r12+N_ROWS]
@@ -100,8 +97,10 @@ eval_node:
     jne .scalar_error
     cmp qword [rax+8], 1
     jne .scalar_error
-    mov rdx, [rax+16]
-    mov [r13+16+rbx*8], rdx
+    mov r10, [rax+V_DATA]
+    mov rdx, [r10]
+    mov r10, [r13+V_DATA]
+    mov [r10+rbx*8], rdx
     inc rbx
     mov r14, [r14+N_NEXT]
     jmp .matrix_loop
@@ -157,10 +156,13 @@ eval_node:
     test rax, rax
     jz .fail
     mov r15, rax
-    movsd xmm0, [r13+16]
-    movsd xmm1, [r14+16]
+    mov r10, [r13+V_DATA]
+    movsd xmm0, [r10]
+    mov r10, [r14+V_DATA]
+    movsd xmm1, [r10]
     call math_power
-    movsd [r15+16], xmm0
+    mov r10, [r15+V_DATA]
+    movsd [r10], xmm0
     mov rax, r15
     jmp .finish
 .unary:
@@ -176,15 +178,8 @@ eval_node:
     call negate_value
     jmp .finish
 .function:
-    mov rdi, [r12+N_LEFT]
-    call eval_node
-    cmp qword [err_msg], 0
-    jne .fail
-    mov r13, rax
-    call .context
-    mov rdi, r13
-    mov rsi, [r12+N_OP]
-    call apply_function
+    mov rdi, r12
+    call eval_call
     jmp .finish
 .assignment:
     ; Preflight first. No partially successful assignment is visible.
@@ -259,16 +254,13 @@ assignment_allowed:
     call find_symbol
     test rax, rax
     jnz .yes
-    cmp qword [symbol_count], VAR_CAP
-    jae .full
+
 .yes:
     mov eax, 1
     DONE
 .readonly:
     lea rdi, [err_readonly]
     jmp .error
-.full:
-    lea rdi, [err_symbols]
 .error:
     call set_error
     xor eax, eax
@@ -297,7 +289,8 @@ apply_function:
     cmp rbx, r15
     jae .complete
     mov [trace_element], rbx
-    movsd xmm0, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rbx*8]
     cmp r13, F_SIN
     je .sin
     cmp r13, F_COS
@@ -312,7 +305,8 @@ apply_function:
 .scalar_store:
     cmp qword [err_msg], 0
     jne .fail
-    movsd [r14+16+rbx*8], xmm0
+    mov r10, [r14+V_DATA]
+    movsd [r10+rbx*8], xmm0
     inc rbx
     jmp .scalar_loop
 .sqrt_check:
@@ -321,7 +315,8 @@ apply_function:
 .check_loop:
     cmp rcx, r15
     jae .sqrt_loop
-    movsd xmm0, [r12+16+rcx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rcx*8]
     ucomisd xmm0, xmm1
     jb .sqrt_error
     inc rcx
@@ -333,18 +328,22 @@ apply_function:
     cmp rax, 2
     jb .sqrt_tail
     pxor xmm0, xmm0
-    movupd xmm1, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movupd xmm1, [r10+rbx*8]
     OP O_SQRTPD
-    movupd [r14+16+rbx*8], xmm0
+    mov r10, [r14+V_DATA]
+    movupd [r10+rbx*8], xmm0
     add rbx, 2
     jmp .sqrt_loop
 .sqrt_tail:
     test rax, rax
     jz .complete
     pxor xmm0, xmm0
-    movsd xmm1, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm1, [r10+rbx*8]
     OP O_SQRTSD
-    movsd [r14+16+rbx*8], xmm0
+    mov r10, [r14+V_DATA]
+    movsd [r10+rbx*8], xmm0
 .complete:
     mov rax, r14
     DONE
@@ -366,12 +365,14 @@ apply_function:
     cmp rbx, r15
     jae .sumdone
     mov [trace_element], rbx
-    movsd xmm1, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm1, [r10+rbx*8]
     OP O_ADDSD
     inc rbx
     jmp .sumloop
 .sumdone:
-    movsd [r14+16], xmm0
+    mov r10, [r14+V_DATA]
+    movsd [r10], xmm0
     jmp .complete
 .sqrt_error:
     lea rdi, [err_real]

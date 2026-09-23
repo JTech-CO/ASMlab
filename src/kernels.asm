@@ -181,7 +181,8 @@ elementwise:
 .divcheck:
     cmp rcx, [rsp+8]
     jae .begin
-    mov rax, [r13+16+rcx*8]
+    mov r10, [r13+V_DATA]
+    mov rax, [r10+rcx*8]
     shl rax, 1
     jz .divzero
     inc rcx
@@ -204,23 +205,28 @@ elementwise:
     jb .tail
     cmp qword [rsp], 1
     je .broadcast_a
-    movupd xmm0, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movupd xmm0, [r10+rbx*8]
     jmp .load_b
 .broadcast_a:
-    movsd xmm0, [r12+16]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10]
     unpcklpd xmm0, xmm0
 .load_b:
     cmp qword [rsp+8], 1
     je .broadcast_b
-    movupd xmm1, [r13+16+rbx*8]
+    mov r10, [r13+V_DATA]
+    movupd xmm1, [r10+rbx*8]
     jmp .packed
 .broadcast_b:
-    movsd xmm1, [r13+16]
+    mov r10, [r13+V_DATA]
+    movsd xmm1, [r10]
     unpcklpd xmm1, xmm1
 .packed:
     lea rdi, [r15+5]
     call exec_sse
-    movupd [r14+16+rbx*8], xmm0
+    mov r10, [r14+V_DATA]
+    movupd [r10+rbx*8], xmm0
     add rbx, 2
     jmp .loop
 .tail:
@@ -229,14 +235,17 @@ elementwise:
     xor eax, eax
     cmp qword [rsp], 1
     cmovne rax, rbx
-    movsd xmm0, [r12+16+rax*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rax*8]
     xor eax, eax
     cmp qword [rsp+8], 1
     cmovne rax, rbx
-    movsd xmm1, [r13+16+rax*8]
+    mov r10, [r13+V_DATA]
+    movsd xmm1, [r10+rax*8]
     mov rdi, r15
     call exec_sse
-    movsd [r14+16+rbx*8], xmm0
+    mov r10, [r14+V_DATA]
+    movsd [r10+rbx*8], xmm0
 .return:
     mov rax, r14
     DONE
@@ -262,6 +271,17 @@ matmul:
     mov rax, [r12+8]
     cmp rax, [r13]
     jne .badshape
+    mov rcx, rax
+    mov rax, [r12]
+    mul qword [r13+8]
+    test rdx, rdx
+    jnz .work_limit
+    mul rcx
+    test rdx, rdx
+    jnz .work_limit
+    cmp rax, MATMUL_TERM_CAP
+    ja .work_limit
+    mov rax, rcx
     mov [rsp], rax
     mov rdi, [r12]
     mov rsi, [r13+8]
@@ -293,13 +313,16 @@ matmul:
     mov rax, [rsp+8]
     imul rax, [rsp]
     add rax, rbx
-    movupd xmm0, [r12+16+rax*8]
+    mov r10, [r12+V_DATA]
+    movupd xmm0, [r10+rax*8]
     mov rax, rbx
     imul rax, [r13+8]
     add rax, [rsp+16]
-    movsd xmm1, [r13+16+rax*8]
+    mov r10, [r13+V_DATA]
+    movsd xmm1, [r10+rax*8]
     add rax, [r13+8]
-    movhpd xmm1, [r13+16+rax*8]
+    mov r10, [r13+V_DATA]
+    movhpd xmm1, [r10+rax*8]
     OP O_MULPD
     movapd xmm1, xmm0
     movapd xmm0, xmm4
@@ -318,11 +341,13 @@ matmul:
     mov rax, [rsp+8]
     imul rax, [rsp]
     add rax, rbx
-    movsd xmm0, [r12+16+rax*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rax*8]
     mov rax, rbx
     imul rax, [r13+8]
     add rax, [rsp+16]
-    movsd xmm1, [r13+16+rax*8]
+    mov r10, [r13+V_DATA]
+    movsd xmm1, [r10+rax*8]
     OP O_MULSD
     movapd xmm1, xmm0
     movapd xmm0, xmm4
@@ -330,7 +355,8 @@ matmul:
     movapd xmm4, xmm0
 .store:
     mov rax, [rsp+24]
-    movsd [r14+16+rax*8], xmm4
+    mov r10, [r14+V_DATA]
+    movsd [r10+rax*8], xmm4
     inc qword [rsp+16]
     jmp .col
 .nextrow:
@@ -339,6 +365,10 @@ matmul:
 .return:
     mov rax, r14
     DONE
+.work_limit:
+    lea rdi, [err_work]
+    call set_error
+    jmp .fail
 .badshape:
     lea rdi, [err_shape]
     call set_error
@@ -366,14 +396,16 @@ transpose_value:
     mov rax, r14
     imul rax, [r12+8]
     add rax, r15
-    movsd xmm1, [r12+16+rax*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm1, [r10+rax*8]
     pxor xmm0, xmm0
     mov rbx, r15
     imul rbx, [r12]
     add rbx, r14
     mov [trace_element], rbx
     OP O_MOVAPD
-    movsd [r13+16+rbx*8], xmm0
+    mov r10, [r13+V_DATA]
+    movsd [r10+rbx*8], xmm0
     inc r15
     jmp .col
 .nextrow:
@@ -403,19 +435,23 @@ negate_value:
     sub rax, rbx
     cmp rax, 2
     jb .tail
-    movupd xmm0, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movupd xmm0, [r10+rbx*8]
     movupd xmm1, [sign_mask]
     OP O_XORPD
-    movupd [r13+16+rbx*8], xmm0
+    mov r10, [r13+V_DATA]
+    movupd [r10+rbx*8], xmm0
     add rbx, 2
     jmp .loop
 .tail:
     test rax, rax
     jz .complete
-    movsd xmm0, [r12+16+rbx*8]
+    mov r10, [r12+V_DATA]
+    movsd xmm0, [r10+rbx*8]
     movsd xmm1, [sign_mask]
     OP O_XORPD
-    movsd [r13+16+rbx*8], xmm0
+    mov r10, [r13+V_DATA]
+    movsd [r10+rbx*8], xmm0
 .complete:
     mov rax, r13
 .return:

@@ -1,50 +1,69 @@
-# ASMlab 0.3.0 - L3-Core
+# ASMlab 0.4.0 - Dynamic Workspace
 
-**Expression → AST → real assembly instruction → SIMD register state → result.**
+**Expression → AST → actual assembly instruction → SIMD registers → result.** NASM x86-64 numerical computing with a libc/CRT-free production runtime.
 
-[한국어](README-KR.md) · [Changelog](CHANGELOG.md) · [Verification](docs/VERIFICATION.md) · [Runtime ABI](docs/RUNTIME-ABI.md)
+[한국어](README-KR.md) · [Changes](CHANGELOG.md) · [Dynamic Workspace](docs/DYNAMIC-WORKSPACE-KR.md) · [Verification](docs/VERIFICATION.md)
 
-A NASM x86-64 numerical environment with an observable SSE2 evaluator. The complete release/debug application now runs from its own `_start`, using its own decimal conversion and buffered Linux syscall I/O. **No libc, CRT, libm, BLAS, LAPACK or dynamic interpreter is linked into the production executables.** This is not just the standalone runtime smoke: the parser, variables, matrix engine, terminal views and capture replay are included.
+## What's new
 
-## Run
+Fixed inline16×16 values are replaced by 64-byte descriptors and quota-accounted anonymous mappings. Temporary evaluation arenas and persistent symbols have separate lifetimes. Assignment stages both the target and `ans` before committing; failed evaluation/allocation preserves both previous values. Symbols are dynamically linked rather than limited to63 users.
 
-Linux x86-64 is required. There is no glibc version requirement for the production ELF. Windows x64 users need a Linux environment such as WSL2; separate WSL hardware testing was not performed. This is not a Windows `.exe`, ARM64/Pi build, browser app or API server.
+```text
+A = ones(32,48)
+B = A
+A = A + 2
+B(32,48)
+A(32,48)
+x = linspace(-10,10,1001)
+y = sin(x)
+size(y)
+:memory
+:drop B
+:clear
+```
+
+`B(32,48)` is1; `A(32,48)` is3. Indexing is **1-based, exactly two scalar indexes, read-only and named-variable only**. Internal table coordinates remain explicitly zero-based. No slices, indexed assignment, empty matrices, block concatenation or MATLAB compatibility is implied.
+
+| API | Meaning |
+|---|---|
+| `zeros(n[,m])`, `ones(n[,m])` | n×n or n×m dense arrays |
+| `eye(n[,m])` | square/rectangular diagonal ones |
+| `size(A)` / `size(A,1|2)` | 1×2 shape / scalar dimension |
+| `linspace(a,b,n)` | 1×n samples; n=1 returns b; endpoint bits copied |
+| `A(row,col)` | scalar read from a named variable |
+| `--memory-mib N` | quota1..1024 MiB; default64 MiB |
+| `:memory` / `:drop NAME` / `:clear` | inspect allocations / delete user symbol / release dynamic values |
+
+## Run / build
 
 ```sh
 chmod +x bin/asmlab bin/asmlab-debug
 ./bin/asmlab
-./bin/asmlab --bits -e 'sqrt([1,4,9,16]) + 2'
-./bin/asmlab --json -e '[1,2;3,4] * [5,6;7,8]'
-```
+./bin/asmlab --json -e 'size(ones(32,48))'
+./bin/asmlab --bits -e 'linspace(-1,1,5)'
+./bin/asmlab -f examples/dynamic-workspace.asmlab
 
-The matrix result is `{"ok":true,"rows":2,"cols":2,"data":[19,22,43,50]}`. Python/NASM are not runtime dependencies.
-
-## Build and verify
-
-```sh
-sudo apt-get update
+# Debian/Ubuntu x86-64 native development environment
 sudo apt-get install -y nasm gcc make binutils python3
 make clean
 make -j2 test
 make test-guards
 ```
 
-`make` builds release and `make debug` builds DWARF debug with NASM + ld (Python records provenance). `make verify` validates and tests the delivered binaries/objects/maps without rebuilding (Python 3.10+ and binutils required). `sudo make empty-root-test` requires chroot privilege. The ordinary gate reports an explicit skip when not privileged; the delivered artifacts were actually tested in an empty root with only the executable and a script, running as UID 65534.
+Production is a static **Linux x86-64** ELF built directly by NASM and GNU ld, with no interpreter, libc, CRT, external math library or Python dependency. A kernel, terminal and filesystem remain OS dependencies. Separate WSL hardware and Windows-native/ARM/Pi execution are not tested. Development comparison binaries intentionally retain libc; the included comparison executable requires glibc2.34+ on the test host, not in production.
 
-The **development-only** `asmlab-libc-reference` and `decimal-adapter.so` intentionally retain libc. The delivered comparison executable requires glibc 2.34+ on the test host; this does not apply to the production application. GCC is used only for those comparison links, never to compile project application code. The new `decimal-native.so` has no libc imports and is only a test fixture. No automatic GAS fallback is permitted.
+`make verify` tests delivered artifacts without rebuilding (Python3.10+ and binutils required). `make workspace-test` rebuilds and tests the dynamic subsystem. Build/source/object/map provenance is verified before normal gates execute binaries; keep the packaged `.o` and `.map` files for no-rebuild verification. GAS translation is not an automatic fallback.
 
-## Scope
+## Bounds and ownership
 
-Binary64 scalars, variables, row/column vectors, matrices, arithmetic, integer powers, transpose, elementwise operations, matrix product, `sin/cos/sqrt/log/sum`. Existing math and kernel sources are unchanged from v0.2.0. Matrices remain limited to 16×16; there are 63 user variables, 512 AST nodes and 8,192 retained trace frames. Failed assignments preserve variables and `ans`.
+Maximum1,048,576 float64 elements **per value**, plus total page-rounded dynamic quota. Default64 MiB is not total RSS or a security sandbox. Old values, evaluation intermediates, target copies and staged `ans` may coexist. A large result can fail to commit even if its own buffer fits. Anonymous mmap success is not a guarantee against host OOM-killer termination.
 
-Raw XMM values and MXCSR are captured around selected real SSE2 instructions. Replay is after evaluation, not live debugging/JIT. `:trace off` is not a fast uninstrumented backend. The evaluator begins with MXCSR `0x1f80`; decimal conversion is integer-only and does not pollute its flags. Correctly rounded decimal conversion is a separate target from elementary-function accuracy: no all-input numerical proof is claimed.
+AST512, temporary descriptors512, recursion64, input4095bytes, decimal token127bytes, trace8192frames remain. Each matrix product is capped at16,777,216 scalar multiply terms. Large tables preview16×16; JSON/quiet export the full array. User-variable previews show at most64 entries (including `ans`). No limit is silently removed or presented as unlimited memory.
 
-`rt_console_format` implements only the trusted view-format subset (strings, signed integers, hex, widths and general decimal), not full ISO printf. The underlying typed Writer and decimal converter are standalone assembly modules. Returned output/flush failure exits with code 2; default SIGPIPE/SIGINT signal termination is retained.
+`math.asm` and the real `exec_sse` capture implementation are unchanged from0.3.0. Matrix address handling changed to follow data pointers; the whole kernels file is therefore **not** identical. Constructors/metadata and allocator instructions are not full-instruction trace events. `linspace` uses observed weighted floating arithmetic; it is not a correctly-rounded real-number interpolator.
 
-## Evidence and roadmap
+## Evidence
 
-[Release gate](evidence/release-summary.json) · [Exact decimal](evidence/l3/decimal-exact.json) · [Empty-root / integration](evidence/l3/l3-core.json) · [Numeric contract](docs/NUMERICS.md) · [Build tool provenance](docs/TOOLCHAIN-PROVENANCE.md)
+Local release: **186,731 assertions, 0 failures**, plus **32 separate fail-closed checks**. Repeated profiles/backends and ABI checks are included; not unique equations or a formal proof. Dynamic tests cover allocator arithmetic/alignment/accounting,320variables, repeated allocation/deletion, commit-time quota failures, OS-returned mmap failure, replay lifetimes, malformed calls and library-free execution. [Reports](evidence/release-summary.json) · [Dynamic report](evidence/dynamic/dynamic-workspace.json)
 
-Counts include repeated corpora and ABI assertions, not distinct expressions. Local Linux x86-64 testing only; configured remote CI was not executed. This bounded single-user educational program is not certified as an untrusted multi-user compute server. Non-PIE linking is used for simple instruction observation, not an ASLR hardening claim.
-
-[Pi 5 / server / ARM64 / 2D–3D graphs](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md) remain **planning only**. Dynamic arrays, new math functions, linear solvers, GUI, ARM64 and web serving are not implemented in this release. Check the untouched archive with `sha256sum -c MANIFEST.sha256` before rebuilding; hashes are not signatures.
+Remote CI is configured, not executed in this delivery. Raspberry Pi/ARM64/web/2D–3D graphics remain [planning-only](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md). This is not a public multi-user service, JIT or live debugger. Full Observe/Compute separation belongs to the next roadmap stage.

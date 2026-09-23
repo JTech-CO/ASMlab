@@ -1,6 +1,7 @@
 section .rodata
 usage: db 'Usage: asmlab [--quiet|--json] [--all] [--bits] [--step]',10
        db '              [--color|--no-color] [-e EXPRESSION | -f FILE]',10
+       db '              [--memory-mib 1..1024]',10
        db '       asmlab --help | --version',10
 %ifdef ASMLAB_LIBC_REFERENCE
        db 'Runtime: development-only libc/CRT comparison backend; NOT L3-Core.',10
@@ -16,16 +17,19 @@ help_text: db 'EXPRESSIONS',10
        db '  sin(pi/4) cos(0) sqrt(A) log(A) sum(A)',10
        db '  ^ uses scalar integer exponents [-1024,1024]; 0^0 = 1',10
        db '  sin/cos: |x| <= 1e6 radians; log: natural log, x>0; sqrt: x>=0',10
+       db '  zeros(n[,m]) ones(n[,m]) eye(n[,m]) size(A[,dim])',10
+       db '  linspace(a,b,n)   A(row,col)   # 1-based scalar indices',10
        db 'COMMANDS',10
-       db '  :help  :vars  :clear  :quit',10
+       db '  :help  :vars  :memory  :drop NAME  :clear  :quit',10
        db '  :trace on|off|all   :bits on|off   :step on|off   :replay',10
        db 'TRACE',10
        db '  Real pre/post XMM captures from precompiled SSE2 kernels, not a JIT.',10
        db '  Replay happens AFTER evaluation: Enter/n=next, p=previous, q=finish.',10
        db '  Default: 6 frames shown; at most 8192 retained; overflow is disclosed.',10
        db 'LIMITS',10
-       db '  16x16 matrices, 63 user variables, 512 AST nodes, depth 64.',10
-       db '  No complex/symbolic math, indexing, plots, solver, or MATLAB compatibility.',0
+       db '  1048576 elements/value; 64 MiB default heap quota; 512 AST nodes; depth 64.',10
+       db '  Matmul <=16777216 terms. Table preview <=16x16; JSON/quiet are complete.',10
+       db '  No slices/indexed assignment, complex/symbolic math, plots, solver, or MATLAB compatibility.',0
 startup_tip: db 'Type :help for syntax. Try sqrt([1,4,9,16]) + 2',0
 prompt: db 10,'asmlab> ',0
 opt_help: db '--help',0
@@ -41,6 +45,9 @@ opt_color: db '--color',0
 opt_nocolor: db '--no-color',0
 opt_expr: db '-e',0
 opt_file: db '-f',0
+opt_memory: db '--memory-mib',0
+cmd_memory: db ':memory',0
+cmd_drop: db ':drop ',0
 cmd_help: db ':help',0
 cmd_vars: db ':vars',0
 cmd_clear: db ':clear',0
@@ -153,7 +160,34 @@ main:
     call rt_strcmp
     test eax, eax
     jz .file
+    mov rdi, r14
+    lea rsi, [opt_memory]
+    call rt_strcmp
+    test eax, eax
+    jz .memory_option
     jmp .badargs
+.memory_option:
+    inc ebx
+    cmp ebx, r12d
+    jae .badargs
+    mov r14, [r13+rbx*8]
+    mov rdi, r14
+    call rt_strlen
+    mov rsi, rax
+    mov rdi, r14
+    call rt_parse_u64
+    test rax, rax
+    jnz .badargs
+    cmp rdx, 1
+    jb .badargs
+    cmp rdx, 1024
+    ja .badargs
+    mov rdi, rdx
+    shl rdi, 20
+    call rt_memory_set_limit
+    test rax, rax
+    jnz .badargs
+    jmp .nextarg
 .quiet:
     mov qword [quiet_mode], 1
     mov qword [trace_enabled], 0
@@ -278,6 +312,8 @@ main:
     jz .return
     mov qword [exit_status], 2
 .return:
+    call temp_release
+    call workspace_clear
     mov eax, [exit_status]
     DONE
 .help:
@@ -384,17 +420,15 @@ process_line:
     jz .empty
     mov r13, rax
     mov r12, [root_node]
+    xor edi, edi
     cmp qword [r12+N_TYPE], ASSIGN
-    jne .ans
+    jne .commit
     lea rdi, [r12+N_NAME]
+.commit:
     mov rsi, r13
-    call store_symbol
-    cmp qword [err_msg], 0
-    jne .error
-.ans:
-    lea rdi, [name_ans]
-    mov rsi, r13
-    call store_symbol
+    call workspace_commit
+    test eax, eax
+    jz .error
     mov [result_value], r13
     call render_result
 .empty:
@@ -404,6 +438,11 @@ process_line:
     mov qword [result_value], 0
     mov qword [exit_status], 1
     call render_error
+    ; Failed expressions retain no dangling AST/arena pointers for replay.
+    mov qword [root_node], 0
+    mov qword [trace_count], 0
+    mov qword [trace_total], 0
+    call temp_release
     xor eax, eax
     DONE
 .command:
@@ -478,6 +517,23 @@ process_command:
     call rt_strcmp
     test eax, eax
     jz .replay
+    mov rdi, r12
+    lea rsi, [cmd_memory]
+    call rt_strcmp
+    test eax, eax
+    jz .memory
+    mov rdi, r12
+    mov esi, 6
+    call rt_strnlen
+    cmp rax, 6
+    jb .unknown_command
+    mov rdi, r12
+    lea rsi, [cmd_drop]
+    mov edx, 6
+    call rt_memcmp
+    test eax, eax
+    jz .drop
+.unknown_command:
     mov qword [err_msg], 0
     mov qword [tok_pos], 0
     lea rdi, [err_command]
@@ -492,12 +548,26 @@ process_command:
     call render_workspace
     jmp .done
 .clear:
+    call expression_reset
     call workspace_clear
     cmp qword [json_mode], 0
     jne .done
     cmp qword [quiet_mode], 0
     jne .done
     SAY cleared_msg
+    jmp .done
+.memory:
+    call render_memory
+    jmp .done
+.drop:
+    mov qword [err_msg], 0
+    mov qword [tok_pos], 6
+    lea rdi, [r12+6]
+    call workspace_drop
+    test eax, eax
+    jnz .changed
+    call render_error
+    mov qword [exit_status], 1
     jmp .done
 .traceon:
     mov qword [trace_enabled], 1

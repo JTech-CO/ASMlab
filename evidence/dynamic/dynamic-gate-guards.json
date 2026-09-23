@@ -1,0 +1,38 @@
+{
+  "case_count": 8,
+  "failure_count": 0,
+  "checks": [
+    {
+      "name": "relocated_dynamic_tree_verifies",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:bin/tests/dynamic-memory.so",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:build/release/rt-dynamic-memory.o",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:src/rt/dynamic_memory.asm",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:src/workspace_functions.asm",
+      "passed": true
+    },
+    {
+      "name": "libc_in_allocator_fixture_rejected",
+      "passed": true
+    },
+    {
+      "name": "missing_allocator_fixture_rejected",
+      "passed": true
+    },
+    {
+      "name": "hidden_libc_input_rejected",
+      "passed": true
+    }
+  ]
+}

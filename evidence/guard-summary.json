@@ -1,0 +1,28 @@
+{
+  "version": "0.4.0",
+  "case_count": 32,
+  "failure_count": 0,
+  "groups": [
+    {
+      "report": "evidence/native/gate-guards.json",
+      "case_count": 6,
+      "failure_count": 0
+    },
+    {
+      "report": "evidence/runtime/runtime-gate-guards.json",
+      "case_count": 9,
+      "failure_count": 0
+    },
+    {
+      "report": "evidence/l3/l3-gate-guards.json",
+      "case_count": 9,
+      "failure_count": 0
+    },
+    {
+      "report": "evidence/dynamic/dynamic-gate-guards.json",
+      "case_count": 8,
+      "failure_count": 0
+    }
+  ],
+  "execution_note": "First three guard scripts completed in the make batch; its outer tool timeout stopped the fourth. Dynamic guards were then independently rerun to completion. All reports are actual executions."
+}

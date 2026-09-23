@@ -1,4 +1,4 @@
-$ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.3.0/bin/asmlab-debug --report /mnt/data/ASMlab-v0.3.0/build/evidence/native/debug-regression.json
+$ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.4.0/bin/asmlab-debug --report /mnt/data/ASMlab-v0.4.0/build/evidence/native/debug-regression.json
 {
   "case_count": 14410,
   "failure_count": 0,
@@ -16,7 +16,8 @@ $ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.3.0/bin/asmlab-deb
     "broadcast": 160,
     "negation": 160,
     "vector_functions": 4,
-    "rejected_inputs": 46,
+    "dynamic_17_axis": 2,
+    "rejected_inputs": 44,
     "exit_status": 1,
     "workspace": 6,
     "whole_line_rejection": 3,
@@ -30,5 +31,5 @@ $ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.3.0/bin/asmlab-deb
     "pty_replay": 4,
     "io_cli": 4
   },
-  "elapsed_seconds": 0.22
+  "elapsed_seconds": 0.28
 }

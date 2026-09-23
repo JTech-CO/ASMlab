@@ -183,6 +183,9 @@ def main() -> int:
               Case('sin([0,pi/6,pi/4,pi/2])',[0,.5,math.sqrt(.5),1],1,4,'vector_functions'),
               Case('cos([0,pi/2,pi])',[1,0,-1],1,3,'vector_functions'),
               Case('log([1,e,10])',[0,1,math.log(10)],1,3,'vector_functions')]
+    # v0.4 intentionally accepts the former 16-cell dimension boundary.
+    cases += [Case('['+','.join('1' for _ in range(17))+']',[1.]*17,1,17,'dynamic_17_axis',0,0),
+              Case('['+';'.join('1' for _ in range(17))+']',[1.]*17,17,1,'dynamic_17_axis',0,0)]
     s.numeric(cases)
     errors=['1/0','1/(-0)','sqrt(-1)','log(0)','log(-1)','sin(1000000.1)',
             'cos(-1000000.1)','[1,2]+[1;2]','[1,2]*[3,4]',
@@ -190,8 +193,7 @@ def main() -> int:
             '1 2','1e','1e+','1e309','1e308*1e308','undefined',
             'foo(1)','sin(1,2)','(1+2','1+','2^0.5','[1,2]^2','2^1025',
             '0^-1','pi=1','e=1','ans=1','sin=1','[1,[2,3]]','1==1',
-            'a'*32,'9'*128,'['+','.join('1' for _ in range(17))+']',
-            '['+';'.join('1' for _ in range(17))+']',
+            'a'*32,'9'*128,
             '('*70+'1'+')'*70,'+'.join('1' for _ in range(300)),
             'A[1]','[1 2]','1..2','x = y = 2','1 + @']
     s.errors(errors)
@@ -204,7 +206,7 @@ def main() -> int:
     for ok,detail in checks:s.mark('workspace',ok,detail)
     text='\n'.join(f'v{i}={i}' for i in range(63))+'\noverflow=5\nv0=123\nv0\n'
     r=s.invoke(text,'--json');vals=[json.loads(x) for x in r.stdout.splitlines()]
-    s.mark('workspace',len(vals)==66 and not vals[63]['ok'] and vals[-1]['data']==[123], 'capacity/replacement')
+    s.mark('workspace',r.returncode==0 and len(vals)==66 and vals[63]['data']==[5] and vals[-1]['data']==[123], 'dynamic growth beyond 63 users/replacement')
     for blob in [b'A=7\nA=9'+b' '*5000+b'\nA\n',b'A=7\nA=9\0ignored\nA\n',
                  b'A=7\nA=9\x1b[2J\nA\n']:
         r=s.invoke(blob,'--json');v=[json.loads(x) for x in r.stdout.splitlines()]
@@ -212,7 +214,7 @@ def main() -> int:
     for expr in ['-0','sin(-0)','sqrt(-0)']:
         r=s.invoke('', '-q','-e',expr)
         s.mark('signed_zero',r.stdout.strip()=='-0',f'{expr}: {r.stdout}')
-    # Maximum matrix product, including the last cell in each buffer.
+    # Former maximum matrix product, including the last cell in each buffer.
     a=[[float(i*16+j+1) for j in range(16)] for i in range(16)]
     ident=[[float(i==j) for j in range(16)] for i in range(16)]
     r=s.invoke(f'A={literal(a)}\nI={literal(ident)}\nA*I\n','--json')

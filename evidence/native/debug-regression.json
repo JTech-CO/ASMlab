@@ -17,7 +17,8 @@
     "broadcast": 160,
     "negation": 160,
     "vector_functions": 4,
-    "rejected_inputs": 46,
+    "dynamic_17_axis": 2,
+    "rejected_inputs": 44,
     "exit_status": 1,
     "workspace": 6,
     "whole_line_rejection": 3,
@@ -111,10 +112,16 @@
       "expression": "log([1,e,10])",
       "absolute_tolerance": 1e-12,
       "relative_tolerance": 1e-12
+    },
+    "dynamic_17_axis": {
+      "max_absolute_error": 0.0,
+      "expression": "[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]",
+      "absolute_tolerance": 0,
+      "relative_tolerance": 0
     }
   },
   "reference": "host Python standard-library math and direct scalar formulas",
-  "elapsed_seconds": 0.22,
+  "elapsed_seconds": 0.28,
   "limitations": [
     "Finite seeded tests are not a proof of correct rounding.",
     "Fuzz tests check bounded execution and structured output, not all semantics.",

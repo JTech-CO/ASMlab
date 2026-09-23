@@ -53,18 +53,19 @@ def validate_foundation() -> dict:
             'smoke':'tests/runtime/smoke.asm','probe':'tests/runtime/abi_probe.asm',
             'fake_syscalls':'tests/runtime/fake_syscalls.asm','libc_io':'src/rt/adapters/libc_io.asm',
             'biguint':'src/rt/biguint.asm','decimal_parse':'src/rt/decimal_parse.asm',
-            'decimal_format':'src/rt/decimal_format.asm'}
+            'decimal_format':'src/rt/decimal_format.asm',
+            'dynamic_memory':'src/rt/dynamic_memory.asm','virtual_memory':'src/platform/linux/virtual_memory.asm'}
     objects=meta.get('objects',{})
     if {k:v['source'] for k,v in objects.items()}!=wanted:raise RuntimeError('Incomplete foundation object inventory')
     for obj in objects.values():
         if digest(local(obj['path']))!=obj['sha256']:raise RuntimeError('Foundation object changed: '+obj['path'])
     targets=meta.get('targets',[])
     if [x['path'] for x in targets]!=['bin/asmlab-runtime-smoke','bin/tests/runtime-primitives.so',
-                                    'bin/tests/runtime-faults.so','bin/tests/decimal-adapter.so','bin/tests/decimal-native.so']:
+                                    'bin/tests/runtime-faults.so','bin/tests/decimal-adapter.so','bin/tests/decimal-native.so','bin/tests/dynamic-memory.so']:
         raise RuntimeError('Incomplete foundation target inventory')
     wanted_groups=[['start','smoke','primitives','integer','fd_io','syscalls'],
                    ['primitives','integer','fd_io','syscalls','probe'],
-                   ['primitives','integer','fd_io','fake_syscalls','probe'],['libc_io','probe'],['biguint','decimal_parse','decimal_format','probe']]
+                   ['primitives','integer','fd_io','fake_syscalls','probe'],['libc_io','probe'],['biguint','decimal_parse','decimal_format','probe'],['dynamic_memory','virtual_memory','probe']]
     for target,group in zip(targets,wanted_groups):
         if target['objects']!=group:raise RuntimeError('Wrong fixture/runtime boundary: '+target['path'])
         if digest(local(target['path']))!=target['sha256']:raise RuntimeError('Foundation target changed: '+target['path'])

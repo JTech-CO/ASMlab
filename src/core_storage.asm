@@ -26,7 +26,12 @@ fn_sqrt: db 'sqrt',0
 fn_log: db 'log',0
 fn_transpose: db 'transpose',0
 fn_sum: db 'sum',0
-function_names: dq 0, fn_sin, fn_cos, fn_sqrt, fn_log, fn_transpose, fn_sum
+fn_zeros: db 'zeros',0
+fn_ones: db 'ones',0
+fn_eye: db 'eye',0
+fn_size: db 'size',0
+fn_linspace: db 'linspace',0
+function_names: dq 0, fn_sin, fn_cos, fn_sqrt, fn_log, fn_transpose, fn_sum, fn_zeros, fn_ones, fn_eye, fn_size, fn_linspace
 err_syntax: db 'Expected a number, variable, function call, or bracketed expression.',0
 err_char: db 'Unsupported character. Identifiers are ASCII; matrix columns use commas.',0
 err_number: db 'Invalid or out-of-range decimal number.',0
@@ -35,12 +40,12 @@ err_paren: db 'Missing closing parenthesis.',0
 err_extra: db 'Unexpected trailing token. Use one expression per line.',0
 err_matrix: db 'Invalid matrix: use commas between columns and semicolons between rows.',0
 err_rect: db 'Matrix rows must have the same number of columns.',0
-err_size: db 'Matrix limit is 16 rows x 16 columns.',0
+err_size: db 'Dimensions must be positive integers; at most 1048576 elements per value.',0
 err_nodes: db 'Expression exceeds the 512-node limit.',0
 err_depth: db 'Expression nesting exceeds the 64-level limit.',0
 err_values: db 'Expression exceeds the temporary-value limit.',0
 err_unknown: db 'Undefined variable.',0
-err_func: db 'Unknown function. Available: sin cos sqrt log transpose sum.',0
+err_func: db 'Unknown function or indexed variable.',0
 err_shape: db 'Incompatible matrix dimensions.',0
 err_div: db 'Division by zero.',0
 err_real: db 'sqrt requires nonnegative real input.',0
@@ -51,7 +56,11 @@ err_nonfinite: db 'Non-finite arithmetic result (overflow or invalid operation).
 err_scalar: db 'Each matrix literal element must evaluate to a scalar.',0
 err_rightdiv: db '/ accepts only a scalar divisor. Use ./ for elementwise division.',0
 err_readonly: db 'pi, e, ans, and built-in function names cannot be assigned.',0
-err_symbols: db 'The workspace supports 63 user variables plus ans.',0
+err_scalar_arg: db 'Function endpoint arguments must be scalar.',0
+err_memory: db 'Memory quota exhausted or Linux allocation failed; workspace and ans are unchanged.',0
+err_arity: db 'Wrong number of arguments for this function or index.',0
+err_index: db 'Index must be an integer within the 1-based row/column bounds.',0
+err_work: db 'Matrix product exceeds the 16777216-term work limit.',0
 err_line: db 'Input line is too long (maximum 4095 bytes); the whole line was rejected.',0
 
 section .bss
@@ -73,8 +82,9 @@ eval_depth: resq 1
 root_node: resq 1
 result_value: resq 1
 nodes: resb NODE_CAP * NS
-values: resb VALUE_CAP * VS
-symbols: resb VAR_CAP * SS
+temp_head: resq 1
+temp_cursor: resq 1
+temp_end: resq 1
 symbol_count: resq 1
 trace_count: resq 1
 trace_total: resq 1
@@ -95,3 +105,12 @@ exit_status: resq 1
 input_stream: resq 1
 step_buf: resb 32
 mxcsr_default: resd 1
+
+; ans has a static, allocation-free zero bootstrap. User values are heap owned.
+section .data
+align 16
+symbols: db 'ans',0
+    times 28 db 0
+    dq boot_value, 0
+boot_value:
+    dq 1, 1, zero, 8, 8, 1, OWNER_STATIC, 0

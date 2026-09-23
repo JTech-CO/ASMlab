@@ -22,7 +22,7 @@ def main():
             status,data=gate();mark('reject_before_execution:'+name,status!=0 and not data['steps'])
         reset();path=r/'bin/asmlab.build.json';m=json.loads(path.read_text());m['commands'][-1].append('-lc');path.write_text(json.dumps(m))
         status,data=gate();mark('hidden_library_link_argument_rejected',status!=0 and not data['steps'])
-        reset();path=r/'bin/runtime-foundation.build.json';m=json.loads(path.read_text());m['targets'][-1]['objects'].append('libc_io');path.write_text(json.dumps(m))
+        reset();path=r/'bin/runtime-foundation.build.json';m=json.loads(path.read_text());next(t for t in m['targets'] if t['path']=='bin/tests/decimal-native.so')['objects'].append('libc_io');path.write_text(json.dumps(m))
         status,data=gate();mark('libc_in_native_decimal_fixture_rejected',status!=0 and not data['steps'])
         reset();(r/'bin/tests/decimal-native.so').unlink();status,data=gate()
         mark('missing_decimal_fixture_rejected',status!=0 and not data['steps'])

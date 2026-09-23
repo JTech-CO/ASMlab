@@ -1,4 +1,4 @@
-# ASMlab 0.3.0 - numerical contract
+# ASMlab 0.4.0 - numerical contract
 
 This document describes the algorithms implemented in `src/math.asm` and `src/kernels.asm`. It is an implementation specification, not a claim of complete MATLAB compatibility or of correctly rounded elementary functions for every input.
 
@@ -79,7 +79,7 @@ The summation order therefore differs from a simple sequential scalar loop and m
 
 ## Accuracy evidence for the delivered executable
 
-The fixed-seed suite uses host Python's standard-library `math` as a reference. It is not a high-precision MPFR oracle. The results below were reproduced on the directly NASM-built v0.3.0 release/debug profiles and development libc-reference backend. The original 14,410-case regression script is unchanged from v0.1.0.
+The fixed-seed suite uses host Python's standard-library `math` as a reference. It is not a high-precision MPFR oracle. The results below were reproduced on the directly NASM-built v0.4.0 release/debug profiles and development libc-reference backend. The14,410-assertion regression corpus preserves numerical cases; former17-axis and64th-variable rejection expectations were deliberately changed for dynamic support. Test-count continuity is not source identity.
 
 | Function | Cases | Maximum observed absolute difference | Acceptance criterion |
 |---|---:|---:|---|
@@ -108,3 +108,13 @@ Trace capture and watched-instruction dispatch have intentional overhead. Even `
 - NASM manual: ELF64 output and assembler syntax. <https://www.nasm.us/doc/nasm09.html>
 
 The algorithms and bounds above are derived from the delivered implementation and elementary Taylor/atanh series, rather than copied from a third-party math library.
+
+## v0.4.0 shape functions and dynamic storage
+
+Changing storage to descriptors does not change scalar precision. `math.asm` and `exec_sse` dispatch/capture prefix remain identical to0.3.0; the matrix memory-addressing code follows `V_DATA` instead of inline storage. Row-major layout, pair-wise SSE2 accumulation order, MXCSR evaluation reset, domain rejection, gradual underflow and negative zero remain.
+
+Constructors `zeros/ones/eye` initialize exact0/1 via integer stores. `size` converts dimensions at most1,048,576 to exactly representable float64. These metadata/initialization instructions are not advertised as fully traced computation. Named indexing validates integral1-based coordinates and returns an independent scalar via a watched register copy. No complex, sparse, empty, sliced or strided view is added.
+
+`linspace(a,b,n)` returns b alone for n=1. For n>1 it copies first/last raw endpoint bits. Interior sample i computes t=i/(n-1), then `t*b+(1-t)*a`, using the selected observed SSE2 instructions. This avoids explicitly forming an overflowing `b-a` for opposite-sign large endpoints. It is still floating arithmetic with possible repeated/nonuniform rounded steps and no correctly-rounded-real-interpolation or MATLAB/NumPy bit-parity guarantee. Any nonfinite result is rejected normally. New tests compare the actual specified sequence, including opposite-sign large endpoints and signed zero; they do not certify every input.
+
+One Value is limited to1,048,576 cells; one nonscalar matmul to16,777,216 scalar multiply terms. Actual available memory is determined by live page-rounded allocation budget, including old values and commit copies. A mathematically valid result can fail due to those explicit resource bounds.

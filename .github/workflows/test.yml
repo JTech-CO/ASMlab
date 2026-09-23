@@ -1,10 +1,10 @@
-name: ASMlab L3-Core Gate
+name: ASMlab Dynamic Workspace Gate
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
   native-nasm:
-    name: v0.3.0 Gate / ${{ matrix.os }}
+    name: v0.4.0 Gate / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -25,6 +25,8 @@ jobs:
           make -j2 test 2>&1 | tee release-gate.log
       - name: Empty filesystem without libraries (drop execution UID)
         run: sudo python3 tests/l3_core.py --require-empty-root --report build/empty-root.json
+      - name: Dynamic workspace without user libraries
+        run: sudo python3 tests/dynamic_workspace.py --report build/dynamic-empty-root.json
       - name: Check all fail-closed guards
         shell: bash
         run: |
@@ -34,7 +36,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: asmlab-v030-gate-${{ matrix.os }}
+          name: asmlab-v040-gate-${{ matrix.os }}
           retention-days: 30
           if-no-files-found: warn
           path: |
@@ -43,6 +45,7 @@ jobs:
             build/evidence/
             build/*gate-guards.json
             build/empty-root.json
+            build/dynamic-empty-root.json
             build/debug/*.o
             build/debug/*.map
             build/release/*.o

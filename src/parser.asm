@@ -236,7 +236,7 @@ lookup_function:
     test eax, eax
     jz .found
     inc ebx
-    cmp ebx, F_SUM
+    cmp ebx, F_LAST
     jbe .loop
     xor ebx, ebx
 .found:
@@ -353,18 +353,15 @@ parse_expression:
     mov qword [r12+N_TYPE], FUNC
     lea rdi, [r12+N_NAME]
     call lookup_function
-    test eax, eax
-    jz .unknown_func
     mov [r12+N_OP], rax
-    call next_token
-    xor edi, edi
-    call parse_expression
-    mov [r12+N_LEFT], rax
+    test eax, eax
+    jnz .arguments
+    mov qword [r12+N_TYPE], INDEX
+.arguments:
+    mov rdi, r12
+    call parse_arguments
     cmp qword [err_msg], 0
     jne .fail
-    cmp qword [tok_type], ')'
-    jne .paren_error
-    call next_token
     jmp .infix
 .group:
     call next_token
@@ -449,6 +446,7 @@ parse_expression:
     jz .fail
     mov qword [rax+N_TYPE], FUNC
     mov qword [rax+N_OP], F_TRANSPOSE
+    mov qword [rax+N_ARGC], 1
     mov [rax+N_LEFT], r12
     mov r12, rax
     call next_token
@@ -542,4 +540,53 @@ parse_matrix:
     call set_error
 .fail:
     xor eax, eax
+    DONE
+
+; Parse up to three comma-separated arguments and consume closing parenthesis.
+; N_NEXT links argument roots only, not their nested children.
+parse_arguments:
+    FRAME 0
+    mov r12, rdi
+    xor r13d, r13d
+    xor r14d, r14d
+    call next_token
+    cmp qword [tok_type], ')'
+    je .close
+.loop:
+    cmp r14, 3
+    jae .arity
+    xor edi, edi
+    call parse_expression
+    cmp qword [err_msg], 0
+    jne .done
+    test rax, rax
+    jz .done
+    test r13, r13
+    jnz .append
+    mov [r12+N_LEFT], rax
+    jmp .linked
+.append:
+    mov [r13+N_NEXT], rax
+.linked:
+    mov r13, rax
+    inc r14
+    mov [r12+N_ARGC], r14
+    cmp qword [tok_type], ','
+    je .comma
+    cmp qword [tok_type], ')'
+    jne .paren
+.close:
+    call next_token
+    jmp .done
+.comma:
+    call next_token
+    jmp .loop
+.arity:
+    lea rdi, [err_arity]
+    jmp .error
+.paren:
+    lea rdi, [err_paren]
+.error:
+    call set_error
+.done:
     DONE

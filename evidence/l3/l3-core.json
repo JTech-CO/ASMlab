@@ -22,12 +22,12 @@
   "failure_count": 0,
   "failures": [],
   "schema_version": 1,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "evidence": [
     {
       "binary": "asmlab",
       "file_backed_mappings": [
-        "/mnt/data/ASMlab-v0.3.0/bin/asmlab"
+        "/mnt/data/ASMlab-v0.4.0/bin/asmlab"
       ],
       "kernel_special_mappings": [
         "[stack]",
@@ -39,7 +39,7 @@
     {
       "binary": "asmlab-debug",
       "file_backed_mappings": [
-        "/mnt/data/ASMlab-v0.3.0/bin/asmlab-debug"
+        "/mnt/data/ASMlab-v0.4.0/bin/asmlab-debug"
       ],
       "kernel_special_mappings": [
         "[stack]",
@@ -54,7 +54,7 @@
         "/asmlab",
         "/script.asmlab"
       ],
-      "binary_sha256": "ce20954f4fb8a90255cb4d3425cff0783e595ef875db784bec329dd97e651c64",
+      "binary_sha256": "9db2c13786115e25f90b62d3fbd2e292cb08ab82e530a2cf3d343bf5265696ad",
       "no_lib_no_loader_no_shell": true,
       "execution_uid": 65534,
       "cases": 3
@@ -65,7 +65,7 @@
         "/asmlab",
         "/script.asmlab"
       ],
-      "binary_sha256": "9d9dc7aeaaaee28793f6c7a03d87091b07912fdd337e19ceaf8e00422390f5c5",
+      "binary_sha256": "d96ec7f0f73923f15594a914474cf1caedc4c2fb1a973ead855647385b414e42",
       "no_lib_no_loader_no_shell": true,
       "execution_uid": 65534,
       "cases": 3

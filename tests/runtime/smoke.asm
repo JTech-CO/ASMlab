@@ -8,7 +8,7 @@ extern rt_reader_init, rt_reader_getc
 extern rt_writer_init, rt_writer_write, rt_writer_flush
 extern rt_writer_cstr, rt_writer_i64, rt_writer_u64, rt_writer_hex64
 section .rodata
-version: db 'ASMlab 0.3.0 runtime-smoke | Linux x86-64 | no libc/CRT',10,0
+version: db 'ASMlab 0.4.0 runtime-smoke | Linux x86-64 | no libc/CRT',10,0
 help: db 'Standalone runtime foundation; not the math REPL.',10
       db '  --version | --echo | --cat FILE | --u64 N | --i64 N | --hex64 N',10,0
 arg_version: db '--version',0

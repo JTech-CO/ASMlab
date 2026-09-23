@@ -1,8 +1,8 @@
-# ASMlab L3-Core contract - v0.3.0
+# ASMlab L3-Core contract - v0.4.0
 
 **Implemented for the complete production application on Linux x86-64.** Level 3 is a project boundary, not an external certification.
 
-| Boundary | v0.3.0 |
+| Boundary | v0.4.0 |
 |---|---|
 | Application sources | Project NASM `.asm` / `.inc` only |
 | Entry/exit | Own `_start`, host initialization, main, final flush, exit_group |
@@ -20,6 +20,8 @@ No dynamic dependencies alone would not exclude static libc. Therefore the gate 
 
 The retained `main` symbol is an ordinary assembly function called by the project's `_start`; it does not imply CRT startup. Kernel-provided `[vdso]`/`[vvar]` mappings are normal OS mappings and are not imported userspace libraries.
 
-L3-Core does not mean an operating system, a MATLAB clone, dynamically sized matrices, full libm correctness, a secure public server, or ARM64 portability. Existing bounded language/trace limits remain. The subsequent L3-Workbench roadmap is separate.
+L3-Core does not mean an operating system, a MATLAB clone, unlimited dynamic storage, full libm correctness, a secure public server, or ARM64 portability. Existing bounded language/trace limits remain. The subsequent L3-Workbench roadmap is separate.
 
 [Verification](VERIFICATION.md) · [Runtime ABI](RUNTIME-ABI.md) · [Future Pi/web plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)
+
+Dynamic Workspace uses own NASM `mmap/munmap` wrappers, descriptors and ownership; no libc allocator was reintroduced. Thirteen project objects are linked in production. Arrays and user symbols are now dynamic but bounded by quotas and documented shape/work limits.

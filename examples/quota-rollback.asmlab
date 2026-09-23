@@ -1,0 +1,11 @@
+# Intentionally exits1. Use: asmlab --memory-mib 1 -f this-file
+# New A stages its target but fails to allocate the new ans copy.
+A = ones(1,25000)
+99
+:memory
+A = zeros(1,40000)
+:memory
+ans
+A(1,25000)
+:clear
+:memory

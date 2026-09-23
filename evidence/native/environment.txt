@@ -1,7 +1,8 @@
+v0.4.0 local environment (host glibc does not imply an application dependency)
 $ uname -a
-Linux 398f14d798a7 6.18.44 #1 SMP Sat Sep 12 15:35:21 UTC 2026 x86_64 GNU/Linux
+Linux aae4f0332658 6.18.44 #1 SMP Tue Sep 22 17:26:16 UTC 2026 x86_64 GNU/Linux
 
-$ /mnt/data/toolchain/linux-x64/bin/nasm -v
+$ /mnt/data/asmlab_tools/linux-x64/bin/nasm -v
 NASM version 2.16.03 compiled on Sep 18 2026
 
 $ ld --version
@@ -11,24 +12,14 @@ This program is free software; you may redistribute it under the terms of
 the GNU General Public License version 3 or (at your option) a later version.
 This program has absolutely no warranty.
 
-$ cc --version
-cc (Debian 14.2.0-19) 14.2.0
+$ python3 --version
+Python 3.13.5
+
+$ gcc --version
+gcc (Debian 14.2.0-19) 14.2.0
 Copyright (C) 2024 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-$ python3 --version
-Python 3.13.5
-
-$ file bin/asmlab bin/asmlab-debug
-bin/asmlab:       ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=4892faaf91b367a32f2b0ed7bb433102798edad7, not stripped
-bin/asmlab-debug: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=3adcf94ce604384b978c7e167c915d4f838c0c50, with debug_info, not stripped
-
-$ sha256sum bin/asmlab bin/asmlab-debug
-ce20954f4fb8a90255cb4d3425cff0783e595ef875db784bec329dd97e651c64  bin/asmlab
-9d9dc7aeaaaee28793f6c7a03d87091b07912fdd337e19ceaf8e00422390f5c5  bin/asmlab-debug
-
-Production app was linked directly by ld; cc/glibc are only build-host/development-reference dependencies.
-NASM is reused third-party prebuilt 2.16.03; not compiled from official source in this run.
-Remote CI executed: false. Separate WSL/Pi device tests: false.
+toolchain_zip_sha256 270ad7b412006b9db4d57bb280aa1f044341a1509c9e219373ef1b81fe5238d5

@@ -1,15 +1,15 @@
-$ sh tests/audit.sh /mnt/data/ASMlab-v0.3.0/bin/asmlab-debug
+$ sh tests/audit.sh /mnt/data/ASMlab-v0.4.0/bin/asmlab-debug
 
 Elf file type is EXEC (Executable file)
-Entry point 0x405d00
+Entry point 0x406ab0
 There are 6 program headers, starting at offset 64
 
 Program Headers:
   Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
   LOAD           0x000000 0x0000000000400000 0x0000000000400000 0x0001b4 0x0001b4 R   0x1000
-  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x004d38 0x004d38 R E 0x1000
-  LOAD           0x006000 0x0000000000406000 0x0000000000406000 0x001610 0x001610 R   0x1000
-  LOAD           0x000000 0x0000000000408000 0x0000000000408000 0x000000 0x1f7e98 RW  0x1000
+  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x005d11 0x005d11 R E 0x1000
+  LOAD           0x007000 0x0000000000407000 0x0000000000407000 0x001a6c 0x001a6c R   0x1000
+  LOAD           0x008a70 0x0000000000409a70 0x0000000000409a70 0x000078 0x0d5350 RW  0x1000
   NOTE           0x000190 0x0000000000400190 0x0000000000400190 0x000024 0x000024 R   0x4
   GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
 
@@ -18,7 +18,7 @@ Program Headers:
    00     .note.gnu.build-id 
    01     .text 
    02     .rodata 
-   03     .bss 
+   03     .data .bss 
    04     .note.gnu.build-id 
    05     
 PASS: L3-Core ELF64 x86-64 EXEC; own _start; no interpreter/NEEDED/undefined symbols; NX stack; no RWX LOAD; own decimal; SSE2.

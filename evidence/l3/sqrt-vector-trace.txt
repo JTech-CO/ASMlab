@@ -1,5 +1,5 @@
-$ ./bin/asmlab --all --bits --no-color -e sqrt([1,4,9,16])+2
-ASMlab 0.3.0 | NASM x86-64 | float64 | SSE2
+$ bin/asmlab --bits -e sqrt([1,4,9,16])+2
+ASMlab 0.4.0 | NASM x86-64 | float64 | SSE2
 Type :help for syntax. Try sqrt([1,4,9,16]) + 2
 
   input  sqrt([1,4,9,16])+2
@@ -17,7 +17,7 @@ Type :help for syntax. Try sqrt([1,4,9,16]) + 2
 02 / EXECUTION   real instruction + captured XMM state
 
   frame 0001 | node #000 | element 0 | active lanes 2/2
-  @0x0000000000401cad  sqrtpd xmm0, xmm1
+  @0x0000000000402110  sqrtpd xmm0, xmm1
                        lane 0                 lane 1
   XMM0 before  [                    0 |                    0 ]
   XMM1 source  [                    1 |                    4 ]
@@ -28,7 +28,7 @@ Type :help for syntax. Try sqrt([1,4,9,16]) + 2
   MXCSR 0x1f80 -> 0x1f80
 
   frame 0002 | node #000 | element 2 | active lanes 2/2
-  @0x0000000000401cad  sqrtpd xmm0, xmm1
+  @0x0000000000402110  sqrtpd xmm0, xmm1
                        lane 0                 lane 1
   XMM0 before  [                    0 |                    0 ]
   XMM1 source  [                    9 |                   16 ]
@@ -39,7 +39,7 @@ Type :help for syntax. Try sqrt([1,4,9,16]) + 2
   MXCSR 0x1f80 -> 0x1f80
 
   frame 0003 | node #006 | element 0 | active lanes 2/2
-  @0x0000000000401c79  addpd xmm0, xmm1
+  @0x00000000004020dc  addpd xmm0, xmm1
                        lane 0                 lane 1
   XMM0 before  [                    1 |                    2 ]
   XMM1 source  [                    2 |                    2 ]
@@ -50,7 +50,7 @@ Type :help for syntax. Try sqrt([1,4,9,16]) + 2
   MXCSR 0x1f80 -> 0x1f80
 
   frame 0004 | node #006 | element 2 | active lanes 2/2
-  @0x0000000000401c79  addpd xmm0, xmm1
+  @0x00000000004020dc  addpd xmm0, xmm1
                        lane 0                 lane 1
   XMM0 before  [                    3 |                    4 ]
   XMM1 source  [                    2 |                    2 ]

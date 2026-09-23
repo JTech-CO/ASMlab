@@ -9,3 +9,7 @@ extern rt_input_stdin, rt_input_open_read, rt_input_close
 extern rt_input_getc, rt_input_gets, rt_input_error
 extern rt_decimal_from_cstr
 %endif
+
+extern rt_heap_alloc, rt_heap_free, rt_memory_set_limit, rt_memory_stats
+extern rt_parse_u64
+

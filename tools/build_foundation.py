@@ -25,7 +25,7 @@ def main():
     p.add_argument('--cc',default=os.environ.get('CC','cc'))
     a=p.parse_args()
     targets=['bin/asmlab-runtime-smoke','bin/tests/runtime-primitives.so',
-             'bin/tests/runtime-faults.so','bin/tests/decimal-adapter.so','bin/tests/decimal-native.so']
+             'bin/tests/runtime-faults.so','bin/tests/decimal-adapter.so','bin/tests/decimal-native.so','bin/tests/dynamic-memory.so']
     meta=ROOT/'bin/runtime-foundation.build.json'
     for s in targets:
         (ROOT/s).parent.mkdir(parents=True,exist_ok=True);(ROOT/s).unlink(missing_ok=True)
@@ -43,7 +43,8 @@ def main():
                  'probe':'tests/runtime/abi_probe.asm','fake_syscalls':'tests/runtime/fake_syscalls.asm',
                  'libc_io':'src/rt/adapters/libc_io.asm',
                  'biguint':'src/rt/biguint.asm','decimal_parse':'src/rt/decimal_parse.asm',
-                 'decimal_format':'src/rt/decimal_format.asm'}
+                 'decimal_format':'src/rt/decimal_format.asm',
+                 'dynamic_memory':'src/rt/dynamic_memory.asm','virtual_memory':'src/platform/linux/virtual_memory.asm'}
         objects={};commands=[]
         for name,source in sources.items():
             obj=folder/(name+'.o')
@@ -52,7 +53,7 @@ def main():
             objects[name]={'source':source,'path':str(obj),'sha256':digest(ROOT/obj)}
         groups=[['start','smoke','primitives','integer','fd_io','syscalls'],
                 ['primitives','integer','fd_io','syscalls','probe'],
-                ['primitives','integer','fd_io','fake_syscalls','probe'],['libc_io','probe'],['biguint','decimal_parse','decimal_format','probe']]
+                ['primitives','integer','fd_io','fake_syscalls','probe'],['libc_io','probe'],['biguint','decimal_parse','decimal_format','probe'],['dynamic_memory','virtual_memory','probe']]
         results=[]
         for i,(target,group) in enumerate(zip(targets,groups)):
             mapfile=folder/('target-'+str(i)+'.map')

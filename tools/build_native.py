@@ -22,9 +22,12 @@ APP_MODULES = [
  ('src/rt/decimal_parse.asm','rt-decimal-parse'), ('src/rt/decimal_format.asm','rt-decimal-format'),
  ('src/rt/fd_io.asm','rt-fd-io'), ('src/rt/adapters/app_io.asm','rt-app-io'),
  ('src/rt/console_format.asm','rt-console-format'),
- ('src/platform/linux/syscalls.asm','rt-syscalls'), ('src/platform/linux/app_start.asm','rt-app-start')]
+ ('src/platform/linux/syscalls.asm','rt-syscalls'), ('src/platform/linux/app_start.asm','rt-app-start'),
+ ('src/rt/dynamic_memory.asm','rt-dynamic-memory'), ('src/platform/linux/virtual_memory.asm','rt-virtual-memory')]
 REFERENCE_MODULES = [('src/asmlab.asm','asmlab'),
- ('dev/runtime/libc_primitives.asm','rt-primitives'), ('src/rt/adapters/libc_io.asm','rt-libc-io')]
+ ('dev/runtime/libc_primitives.asm','rt-primitives'), ('src/rt/adapters/libc_io.asm','rt-libc-io'),
+ ('src/rt/integer.asm','rt-integer'), ('src/rt/dynamic_memory.asm','rt-dynamic-memory'),
+ ('src/platform/linux/virtual_memory.asm','rt-virtual-memory')]
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()

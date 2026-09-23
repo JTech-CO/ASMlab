@@ -1,37 +1,56 @@
-# ASMlab 0.3.0 - L3-Core
+# ASMlab 0.4.0 - Dynamic Workspace
 
 **수식 → AST → 실제 어셈블리 명령 → SIMD 레지스터 → 결과**를 관찰하는 NASM x86-64 수치 계산 환경이다.
 
-[English](README.md) · [변경 이력](CHANGELOG.md) · [검증](docs/VERIFICATION.md) · [로드맵](docs/ROADMAP-KR.md)
+[English](README.md) · [변경 이력](CHANGELOG.md) · [동적 작업공간](docs/DYNAMIC-WORKSPACE-KR.md) · [검증](docs/VERIFICATION.md) · [로드맵](docs/ROADMAP-KR.md)
 
-## v0.3.0에서 달라진 점
+## 이번 버전
 
-기본 release/debug 실행 파일 전체가 자체 `_start`, float64 문자열 변환, Reader/Writer, 터미널 포매터를 사용한다. **libc·CRT·libm·BLAS·LAPACK 없이 실행**하며, 동적 로더와 `DT_NEEDED`도 없다. 수식 평가기가 없는 독립 smoke만을 L3로 부르는 것이 아니라, 파서·평가기·행렬·추적·재생까지 포함한 앱 전체를 전환했다.
+고정 16×16 Value를 **64바이트 descriptor와 동적 데이터 버퍼**로 교체했다. 동적 변수 목록, mmap 기반 임시 arena·지속 값 저장, 페이지 단위 quota, 실패한 대입의 원자적 롤백을 구현했다. 기본 release/debug는 계속 **libc·CRT·libm·BLAS·LAPACK 없는 정적 Linux x86-64 ELF**다.
 
-| 영역 | 상태 |
+| 기능 | 지원 내용 |
 |---|---|
-| float64 입력 | 최대 127바이트 숫자 토큰, 정수 유리수 기반 nearest-even 변환 |
-| float64 출력 | 자체 1~17 유효숫자 포매터. JSON/quiet는 왕복 가능한 17자리 |
-| 파일·콘솔 | Linux syscall과 자체 Reader/Writer. REPL·재생이 같은 입력 버퍼 사용 |
-| 시작·종료 | 자체 `_start`, 최종 flush 확인, 쓰기/flush 실패 시 종료 코드 2 |
-| 수치 계산 | 기존 `math.asm`·`kernels.asm` 유지. 평가 직전에 MXCSR 초기화 |
-| 화면 | 기존 터미널 AST·실제 명령 주소·XMM 원시 비트·재생 유지 |
+| 행렬·벡터 | 값당 최대 1,048,576개 float64 원소. 실제 할당은 세션 메모리 예산 안에서만 성공 |
+| 변수 | 기존 63개 제한 제거. 동적 연결 목록이며 quota 한도와 이름 규칙은 유지 |
+| 생성자 | `zeros(n[,m])`, `ones(n[,m])`, `eye(n[,m])`, `linspace(a,b,n)` |
+| 크기·읽기 | `size(A)`, `size(A,1)`, `size(A,2)`, 이름이 있는 변수의 `A(row,col)` |
+| 메모리 관리 | 기본 64MiB, `--memory-mib 1..1024`, `:memory`, `:drop NAME`, `:clear` |
+| 원자적 대입 | 새 항목·변수 값·ans 복사를 모두 확보한 뒤 commit. 실패 시 기존 둘 모두 보존 |
+| 화면 | 큰 값은 앞 16행×16열 미리보기. JSON/quiet는 전체 데이터 출력 |
 
-**Linux x86-64용 정적 ELF**다. 동봉 앱에 glibc 버전 요구가 더는 없다. Linux 커널·터미널·파일시스템은 사용한다. ARM/Pi, Windows 네이티브 `.exe`, 웹 서버, 그래프 기능을 추가한 버전은 아니다. Windows x64의 WSL2 Linux는 실행 대상이지만 이번에 별도 WSL 장비를 시험하지 않았다.
+인덱스는 **1부터 시작**하고 읽기 전용이다. 현재 표의 0-based 행·열 표시는 내부 저장·진단 좌표이며 언어 인덱싱 규칙과 다르다. 슬라이스·선형 인덱스·인덱스 대입·빈 행렬은 아직 지원하지 않는다.
 
-## 바로 실행
+## 실행
 
 ```sh
 chmod +x bin/asmlab bin/asmlab-debug
 ./bin/asmlab
-./bin/asmlab --bits -e 'sqrt([1,4,9,16]) + 2'
-./bin/asmlab --json -e '[1,2;3,4] * [5,6;7,8]'
-./bin/asmlab -f examples/walkthrough.asmlab
+./bin/asmlab --json -e 'size(ones(32,48))'
+./bin/asmlab --bits -e 'linspace(-1,1,5)'
+./bin/asmlab --memory-mib 64 -f examples/dynamic-workspace.asmlab
 ```
 
-마지막 행렬 곱의 JSON은 `{"ok":true,"rows":2,"cols":2,"data":[19,22,43,50]}`이다. NASM·Python은 제공 실행 파일의 런타임에 필요하지 않는다. 기본 SIGPIPE·SIGINT 동작은 유지하므로 신호에 의한 종료까지 종료 코드 2로 바꾸지는 않는다.
+```text
+A = ones(32,48)
+B = A
+A = A + 2
+B(32,48)
+A(32,48)
+size(A)
+x = linspace(-10,10,1001)
+y = sin(x)
+size(y)
+:memory
+:drop B
+:clear
+:memory
+```
 
-## 빌드·시험
+위에서 `B(32,48)`은 1, `A(32,48)`은 3이다. `:clear` 직후 동적 사용량은 0이며 `ans`는 0이다. `:memory`의 peak와 누적 map/unmap 횟수는 초기화하지 않는다.
+
+**Linux x86-64용이다.** 기본 앱의 실행에 glibc, NASM, Python은 필요하지 않다. Windows x64 WSL2 Linux는 실행 대상이지만 이번에는 별도 WSL 장비에서 시험하지 않았다. Windows 네이티브·ARM64·Pi·웹 앱·그래프는 포함하지 않았다.
+
+## 빌드와 시험
 
 ```sh
 sudo apt-get update
@@ -41,49 +60,39 @@ make -j2 test
 make test-guards
 ```
 
-| 명령 | 내용 |
+| 명령 | 동작 |
 |---|---|
-| `make` / `make debug` | NASM + **ld**로 앱 빌드, Python으로 출처 기록 |
-| `make test` | release/debug, 개발용 비교 백엔드·fixture를 빌드하고 전체 검사 |
-| `make verify` | 동봉 산출물·입력/오브젝트 해시 확인 후 전체 검사. 재빌드 없음 |
-| `make audit` | ELF·링크·호출 경계 감사 |
-| `make l3-test` | 정확한 decimal 변환과 L3 통합 검사 |
-| `sudo make empty-root-test` | 권한이 필요한 무라이브러리 격리 실행 검사 |
+| `make` / `make debug` | NASM + ld로 기본 정적 앱 빌드; Python으로 출처 기록 |
+| `make test` | release/debug·개발 비교·fixture를 빌드한 후 네이티브/기초 런타임/L3/동적 작업공간 검사 |
+| `make workspace-test` | 필요한 산출물을 빌드하고 동적 작업공간 검사 |
+| `make verify` | 재빌드 없이 제공 산출물·오브젝트·입력 해시 확인 후 전체 검사 |
+| `make test-guards` | 손상·누락·과거 소스·잘못된 링크 조합을 실행 전에 차단하는지 검사 |
+| `make audit` | 정적 ELF와 호출·오브젝트 의존성 감사 |
 
-`make verify`에는 Python 3.10 이상과 binutils가 필요하다. NASM/GCC는 재빌드하지 않는다. 일반 `make test`에서 chroot 권한이 없으면 해당 검사만 **skipped로 명시**한다. 제공된 릴리스에서는 두 바이너리를 라이브러리 없는 루트에서 UID 65534로 각각 3건씩 실행했다. 이는 서버 보안 격리 인증이 아니다.
+`make verify`에는 Python 3.10 이상과 binutils가 필요하다. 개발 비교 바이너리 때문에 **시험 호스트**에는 glibc 2.34 이상이 필요하지만 기본 `bin/asmlab`의 요구 사항은 아니다. GCC는 개발 비교 타깃에만 사용한다. NASM 부재 시 GAS로 우회하지 않으며 오래된 산출물도 성공으로 재사용하지 않는다.
 
-**개발용 `bin/asmlab-libc-reference`와 `decimal-adapter.so`는 의도적으로 libc에 링크**한다. 기본 앱의 의존성과 혼동하지 않는다. 전체 시험에 필요한 GCC·Python·ctypes·Decimal/Fraction은 개발 도구일 뿐이다. 동봉 비교 실행 파일은 glibc 2.34 이상을 요구하므로 전체 시험 호스트에는 libc가 필요하다. 기본 계산 앱의 무의존 실행과는 별개다. 빌드 실패 시 오래된 앱을 성공 산출물처럼 재사용하지 않으며, GAS 자동 대체도 없다.
+로컬 릴리스 검사 **186,731개 assertion, 실패 0**, 별도 실패 차단 **32개, 실패 0**이다. 같은 corpus의 여러 빌드 반복과 ABI checks를 포함한 실행 횟수이지 서로 다른 수식의 개수나 전 입력 증명이 아니다. [실제 결과](evidence/release-summary.json) · [동적 시험 상세](evidence/dynamic/dynamic-workspace.json)
 
-## 계산과 실제 실행 관찰
+## 메모리와 수명
 
-```text
-x = 3
-x^2 + 4^2
-A = [1,2;3,4]
-A * A
-A .* A
-A'
-sin(pi / 4)
-log(e)
-:bits on
-sqrt([1,4,9,16]) + 2
-:replay
-```
+메모리 quota는 descriptor·데이터·심볼·arena의 **메타데이터를 포함한 페이지 단위 동적 매핑**을 센다. 고정 AST/trace BSS, 스택, 전체 RSS, CPU 시간을 제한하는 보안 sandbox가 아니다. 작업공간의 기존 값, 평가 중간값, commit용 복사가 동시에 존재할 수 있어 최종 배열 크기보다 더 많은 여유가 필요하다.
 
-재생은 **계산 완료 후 실제 캡처 기록 탐색**이다. `n`+Enter는 다음, `p`+Enter는 이전, `q`+Enter는 종료다. 실시간 디버거나 JIT가 아니며 선택한 SSE2 명령만 기록한다. `:trace off`는 캡처·디스패치 비용을 모두 없애는 성능 모드가 아니다.
+`B=A`는 독립 복사다. 성공한 수식의 임시 arena는 AST·재생을 위해 다음 수식까지 보존한다. 다음 수식·`:clear`는 이전 임시 참조를 무효화하고 해제한다. 실패한 수식은 자체 임시 공간을 회수한다. `:drop A`는 A의 지속 값만 해제하며 별도 임시 복사·trace를 깨뜨리지 않는다.
 
-## 현재 제한
+예산 초과나 반환된 Linux 할당 오류는 복구하여 기존 변수·ans를 보존한다. **호스트 전체 메모리 압박으로 OOM killer가 프로세스를 종료하는 경우까지 복구한다고 보장하지 않는다.** 소유 포인터에 대한 중복·임의 free, 동시 접근은 내부 ABI 밖이다.
 
-행렬 16×16, 사용자 변수 63개, AST 512개 노드, 재귀 깊이 64, 입력 한 줄 4,095바이트, 수식당 trace 8,192프레임을 유지한다. `sin/cos`는 `|x| <= 1,000,000`, `sqrt`는 비음수, `log`는 양수, `^`는 -1024~1024의 정수 지수다. 부분정규수와 부호 있는 0은 허용하며 NaN·무한대 결과는 오류다. `sum(A)`는 전체 원소 합이고 행렬 열 구분에는 쉼표가 필요하다.
+## 유지한 제한
 
-함수 추가·동적 행렬·선형대수·공개 서버는 후속 단계다. 단일 사용자 로컬 연구·교육 프로그램이며 임의 네트워크 입력을 받는 서비스로 검증하지 않았다.
+AST 512개, 임시 Value 최대 512개, 재귀 64, 한 줄 4,095바이트, 숫자 토큰 127바이트, trace 8,192프레임이다. 따라서 큰 배열은 거대한 리터럴보다 생성자로 만든다. 한 행렬 곱의 `m*n*k`는 16,777,216항 이하로 제한한다. 이는 성능 보증이나 세션 전체 실행 시간 제한은 아니다.
 
-## 검증 자료
+`sin/cos`는 `|x| <= 1,000,000`, `sqrt`는 비음수, `log`는 양수, `^`는 -1024~1024 정수 지수다. 모든 숫자는 float64이며 부분정규수·음의 0은 허용하고 NaN·무한대 계산 결과는 오류다. `sum(A)`는 전체 원소의 합이다. 수학 함수의 전 범위 올바른 반올림을 증명한 것은 아니다.
 
-[전체 결과](evidence/release-summary.json) · [정확 decimal 시험](evidence/l3/decimal-exact.json) · [L3 통합·격리 실행](evidence/l3/l3-core.json) · [실제 캡처 예제](evidence/l3/sqrt-vector-trace.txt)
+## 관찰과 후속 작업
 
-검사 횟수는 프로파일·백엔드 반복과 ABI assertion을 포함한다. 전 입력에 대한 형식 증명이나 함수 전 범위 correct-rounding 인증이 아니다. 실제 검증은 Linux x86-64 컨테이너에서 수행했다. Ubuntu 22.04/24.04 CI는 구성했지만 원격 실행하지 않았다.
+`:bits on`, `:replay`, `:step on`을 유지한다. 실제 선택 명령의 PC·XMM·MXCSR를 기록하고 계산 후 탐색한다. JIT·실시간 디버거가 아니며 `:trace off`도 중앙 명령 디스패치 비용을 제거하지 않는다. 생성자의 정수 채우기·메타데이터·메모리 할당은 SSE2 전 명령 추적에 포함되지 않는다. `linspace`의 표본 산술과 인덱스 읽기의 관찰 명령은 실제 캡처다.
 
-[ABI](docs/RUNTIME-ABI.md) · [decimal 알고리즘](docs/DECIMAL-CONVERSION.md) · [L3 경계](docs/LEVEL3-CONTRACT.md) · [수치 계약](docs/NUMERICS.md) · [도구 출처](docs/TOOLCHAIN-PROVENANCE.md)
+[Pi 5·ARM64·서버형 웹·2D/3D 그래프 계획](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)은 문서만 보존했다. 원격 GitHub Actions·별도 WSL/Pi 실기기 시험은 실행하지 않았다. 현재 제품은 로컬 단일 사용자용이며 공개 계산 서버로 검증하지 않았다.
 
-[Pi 5·ARM64·웹·그래프 계획](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)은 문서만 보존했다. `MANIFEST.sha256`은 압축 해제 직후 `sha256sum -c MANIFEST.sha256`으로 확인한다. 해시는 무결성 기록이며 전자서명이나 보안 인증이 아니다.
+[언어](docs/LANGUAGE.md) · [ABI](docs/RUNTIME-ABI.md) · [수치 계약](docs/NUMERICS.md) · [L3 경계](docs/LEVEL3-CONTRACT.md) · [도구 출처](docs/TOOLCHAIN-PROVENANCE.md)
+
+해제 직후 `sha256sum -c MANIFEST.sha256`으로 패키지를 확인한다. 해시는 무결성 기록이지 서명·안전성 인증은 아니다.

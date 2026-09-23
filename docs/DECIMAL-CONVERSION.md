@@ -1,4 +1,6 @@
-# Exact decimal conversion in ASMlab v0.3.0
+# Exact decimal conversion in ASMlab v0.4.0
+
+The v0.3.0 conversion algorithms are retained and revalidated; dynamic storage does not delegate numeric conversion to libc.
 
 Status: implemented and integrated into the full native application. The libc conversion adapter remains only in development comparison builds. These are original, deliberately simple **integer reference algorithms**, not Ryu/Eisel-Lemire ports and not shortest-string implementations.
 

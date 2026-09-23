@@ -1,10 +1,10 @@
-# v0.3.0 toolchain provenance
+# v0.4.0 toolchain provenance
 
-Recorded for the local release build on 2026-09-23. These records identify the actual build tool and inputs; they are not a supply-chain security certification.
+Recorded for the local release build on 2026-09-24 (Asia/Seoul). These records identify the actual build tool and inputs; they are not a supply-chain security certification.
 
 ## How NASM was obtained
 
-This build reused the toolchain ZIP attached during v0.1.1. Its ZIP and executable SHA256 were checked again. The earlier delivery obtained this **third-party prebuilt NASM executable** through a read-only public GitHub Actions artifact download from `holepunchto/nasm-runtime`. No new toolchain workflow was executed for v0.3.0. It was not an official NASM release binary and was not rebuilt from official NASM sources in this environment.
+This build reused the toolchain ZIP attached during v0.1.1. Its ZIP and executable SHA256 were checked again. The earlier delivery obtained this **third-party prebuilt NASM executable** through a read-only public GitHub Actions artifact download from `holepunchto/nasm-runtime`. No new toolchain workflow was executed for v0.4.0. It was not an official NASM release binary and was not rebuilt from official NASM sources in this environment.
 
 | Item | Exact value |
 |---|---|
@@ -28,7 +28,7 @@ The inspected CMake file installs `nasm` and `ndisasm` supplied through `find_po
 
 ## ASMlab build inputs
 
-The full production application links eleven separately generated NASM objects directly with GNU ld, `-static --no-undefined -e _start`. No CRT, system archive or shared library is a production input. GCC/cc remains a linker driver only for development comparison targets. The independent smoke also uses ld; `decimal-native.so` and primitive/fault fixtures have no libc imports. The test `decimal-adapter.so` intentionally retains libc. No project C/C++ source compilation is performed.
+The full production application links thirteen separately generated NASM objects directly with GNU ld, `-static --no-undefined -e _start`. No CRT, system archive or shared library is a production input. GCC/cc remains a linker driver only for development comparison targets. The independent smoke also uses ld; `decimal-native.so` and primitive/fault fixtures have no libc imports. The test `decimal-adapter.so` intentionally retains libc. No project C/C++ source compilation is performed.
 
 - Release: NASM `-f elf64 -w+error -Ox`.
 - Debug: NASM `-f elf64 -w+error -O0 -g -F dwarf`.
@@ -38,7 +38,7 @@ The full production application links eleven separately generated NASM objects d
 
 [Release sidecar](../bin/asmlab.build.json) and [debug sidecar](../bin/asmlab-debug.build.json) record the exact command arrays, tool versions, binary/object/map SHA256 and build-input hashes. Build completion is not test completion; [native gate](../evidence/native/gate-summary.json) is separate.
 
-The default build/test path cannot automatically fall back to GNU as. The old bridge remains historical source but is unsupported by the v0.3.0 multi-object build; `make validate-gas` explicitly fails. `make verify` checks delivered source inventories, binaries, objects and link maps; `make test` creates a new native build before testing.
+The default build/test path cannot automatically fall back to GNU as. The old bridge remains historical source but is unsupported by the v0.4.0 multi-object build; `make validate-gas` explicitly fails. `make verify` checks delivered source inventories, binaries, objects and link maps; `make test` creates a new native build before testing.
 
 ## Environment and limits
 

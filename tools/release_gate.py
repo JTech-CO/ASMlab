@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Native Gate and Runtime Foundation gate; do not silently skip either."""
+"""Run native, foundation, L3, and Dynamic Workspace gates; fail closed."""
 from __future__ import annotations
 import argparse
 from datetime import datetime,timezone
@@ -22,7 +22,7 @@ def main():
     try:
         validate_app('asmlab','release');validate_app('asmlab-debug','debug')
         validate_app('asmlab-libc-reference','release','libc-reference');validate_foundation()
-        for label,script in [('native','tools/native_gate.py'),('runtime','tools/runtime_gate.py'),('l3','tools/l3_gate.py')]:
+        for label,script in [('native','tools/native_gate.py'),('runtime','tools/runtime_gate.py'),('l3','tools/l3_gate.py'),('dynamic','tools/dynamic_gate.py')]:
             r=subprocess.run([sys.executable,script,'--report-dir',str(out/label)],cwd=ROOT,text=True,capture_output=True,timeout=180)
             (out/(label+'.log')).write_text(r.stdout+r.stderr)
             result['steps'].append({'name':label,'exit_code':r.returncode});save()
@@ -30,9 +30,11 @@ def main():
         native=json.loads((out/'native/gate-summary.json').read_text())
         runtime=json.loads((out/'runtime/runtime-summary.json').read_text())
         l3=json.loads((out/'l3/l3-summary.json').read_text())
+        dynamic=json.loads((out/'dynamic/dynamic-summary.json').read_text())
+        result.update(dynamic_assertions=dynamic['total_assertions'],dynamic_empty_root_skipped=dynamic['empty_root_skipped'])
         result.update(status='passed',l3_assertions=l3['total_assertions'],empty_root_skipped=l3['empty_root_skipped'],native_assertions=native['total_assertions'],
                       runtime_assertions=runtime['total_assertions'],
-                      total_assertions=native['total_assertions']+runtime['total_assertions']+l3['total_assertions'],failure_count=0)
+                      total_assertions=native['total_assertions']+runtime['total_assertions']+l3['total_assertions']+dynamic['total_assertions'],failure_count=0)
         result['test_sources_sha256']={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest()
                for p in sorted([*ROOT.glob('tests/**/*.py'),*ROOT.glob('tests/**/*.asm'),*ROOT.glob('tools/*.py')])}
         result['limitations']=['Counts include repeated corpus executions on different profiles/backends and ABI assertions; not unique mathematical cases.',
