@@ -11,6 +11,7 @@ from pathlib import Path
 import subprocess
 import sys
 import hashlib
+from check_provenance import validate_app
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -34,12 +35,9 @@ def main():
     save()
     try:
         for profile,filename in [('release','asmlab'),('debug','asmlab-debug')]:
+            validate_app(filename,profile)
+        for profile,filename in [('release','asmlab'),('debug','asmlab-debug')]:
             binary=ROOT/'bin'/filename
-            m=json.loads(Path(str(binary)+'.build.json').read_text())
-            if m.get('build_kind')!='nasm-native' or m.get('profile')!=profile or m.get('binary_sha256')!=hashlib.sha256(binary.read_bytes()).hexdigest():
-                raise RuntimeError('Missing/stale/non-native build provenance: '+filename)
-            if not m.get('source_sha256') or any(hashlib.sha256((ROOT/p).read_bytes()).hexdigest()!=h for p,h in m['source_sha256'].items()):
-                raise RuntimeError('Build input hashes differ: '+filename)
             target=out/(profile+'-regression.json');target.unlink(missing_ok=True)
             step(profile+'-regression',[sys.executable,'tests/verify.py',binary,'--report',target])
             report=json.loads(target.read_text())

@@ -1,10 +1,10 @@
-name: NASM Native Gate
+name: ASMlab Native and Runtime Gate
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
   native-nasm:
-    name: Native Gate / ${{ matrix.os }}
+    name: v0.2.0 Gate / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -17,28 +17,35 @@ jobs:
           persist-credentials: false
       - name: Install NASM and development tools
         run: sudo apt-get update && sudo apt-get install -y nasm gcc make binutils python3
-      - name: Clean native build and full gate
+      - name: Clean native, reference and foundation build; full gate
         shell: bash
         run: |
           set -o pipefail
           make clean
-          make -j2 test 2>&1 | tee native-gate.log
-      - name: Check fail-closed gate guards
-        run: python3 tests/gate_guards.py --report build/gate-guards.json
-      - name: Upload evidence (including failures)
+          make -j2 test 2>&1 | tee release-gate.log
+      - name: Check both sets of fail-closed guards
+        shell: bash
+        run: |
+          set -o pipefail
+          make test-guards 2>&1 | tee gate-guards.log
+      - name: Upload artifacts and evidence (including failures)
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: native-gate-${{ matrix.os }}
+          name: asmlab-v020-gate-${{ matrix.os }}
           retention-days: 30
           if-no-files-found: warn
           path: |
-            native-gate.log
+            release-gate.log
+            gate-guards.log
             build/evidence/
-            build/gate-guards.json
-            build/debug/asmlab.map
-            build/release/asmlab.map
-            bin/asmlab
-            bin/asmlab-debug
-            bin/*.build.json
-            bin/BUILD_ORIGIN.txt
+            build/*gate-guards.json
+            build/debug/*.o
+            build/debug/*.map
+            build/release/*.o
+            build/release/*.map
+            build/reference/*.o
+            build/reference/*.map
+            build/runtime/*.o
+            build/runtime/*.map
+            bin/

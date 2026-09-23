@@ -126,7 +126,7 @@ next_token:
     ja .longname
     lea rdi, [tok_name]
     mov rsi, r13
-    call memcpy
+    call rt_memcpy
     mov eax, T_ID
     jmp .store
 .number:
@@ -190,12 +190,12 @@ next_token:
     lea rdi, [num_buf]
     mov rsi, r13
     mov rdx, r14
-    call memcpy
+    call rt_memcpy
     lea rax, [num_buf]
     mov byte [rax+r14], 0
     lea rdi, [num_buf]
     lea rsi, [num_end]
-    call strtod
+    call rt_decimal_from_cstr
     movq rax, xmm0
     mov rcx, rax
     shr rcx, 52
@@ -232,7 +232,7 @@ lookup_function:
     lea rax, [function_names]
     mov rsi, [rax+rbx*8]
     mov rdi, r12
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .found
     inc ebx
@@ -257,7 +257,7 @@ parse_statement:
     lea rdi, [rsp]
     lea rsi, [tok_name]
     mov edx, 32
-    call memcpy
+    call rt_memcpy
     call next_token
     cmp qword [tok_type], '='
     jne .rewind
@@ -289,7 +289,7 @@ parse_statement:
     lea rdi, [r13+N_NAME]
     lea rsi, [rsp]
     mov edx, 32
-    call memcpy
+    call rt_memcpy
     mov r12, r13
 .return:
     mov rax, r12
@@ -346,7 +346,7 @@ parse_expression:
     lea rdi, [r12+N_NAME]
     lea rsi, [tok_name]
     mov edx, 32
-    call memcpy
+    call rt_memcpy
     call next_token
     cmp qword [tok_type], '('
     jne .infix

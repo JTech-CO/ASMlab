@@ -1,10 +1,10 @@
-# v0.1.1 toolchain provenance
+# v0.2.0 toolchain provenance
 
 Recorded for the local release build on 2026-09-23. These records identify the actual build tool and inputs; they are not a supply-chain security certification.
 
 ## How NASM was obtained
 
-The working container initially had no NASM. Direct package/source downloads were unavailable. A **third-party prebuilt NASM executable** was obtained through a read-only public GitHub Actions artifact download from `holepunchto/nasm-runtime`. It was not an official NASM release binary and was not rebuilt from official NASM sources in this environment.
+This build reused the toolchain ZIP attached during v0.1.1. Its ZIP and executable SHA256 were checked again. The earlier delivery obtained this **third-party prebuilt NASM executable** through a read-only public GitHub Actions artifact download from `holepunchto/nasm-runtime`. No new toolchain workflow was executed for v0.2.0. It was not an official NASM release binary and was not rebuilt from official NASM sources in this environment.
 
 | Item | Exact value |
 |---|---|
@@ -28,7 +28,7 @@ The inspected CMake file installs `nasm` and `ndisasm` supplied through `find_po
 
 ## ASMlab build inputs
 
-Application input is `src/asmlab.asm`, which includes the project's `.asm` and `.inc` files. GCC/cc is only a linker driver for that NASM object plus system libc/CRT. No project C/C++ source compilation is performed.
+The application links separate NASM objects for `src/asmlab.asm`, primitive backend and libc I/O adapter. GCC/cc is a linker driver for these objects plus system libc/CRT. The independent smoke uses NASM objects and GNU ld without CRT. The test decimal-adapter fixture intentionally uses libc, while the own primitive/fault fixtures do not. No project C/C++ source compilation is performed.
 
 - Release: NASM `-f elf64 -w+error -Ox`.
 - Debug: NASM `-f elf64 -w+error -O0 -g -F dwarf`.
@@ -38,8 +38,10 @@ Application input is `src/asmlab.asm`, which includes the project's `.asm` and `
 
 [Release sidecar](../bin/asmlab.build.json) and [debug sidecar](../bin/asmlab-debug.build.json) record the exact command arrays, tool versions, binary/object/map SHA256 and build-input hashes. Build completion is not test completion; [native gate](../evidence/native/gate-summary.json) is separate.
 
-The default build/test path cannot automatically fall back to GNU as. The optional bridge remains a historical comparison tool with a distinct filename and cannot satisfy the native provenance gate. `make verify` checks the delivered binaries; `make test` creates a new native build before testing.
+The default build/test path cannot automatically fall back to GNU as. The old bridge remains historical source but is unsupported by the v0.2.0 multi-object build; `make validate-gas` explicitly fails. `make verify` checks delivered source inventories, binaries, objects and link maps; `make test` creates a new native build before testing.
 
 ## Environment and limits
 
 Actual environment details are captured in [environment.txt](../evidence/native/environment.txt). These are local container results. The configured Ubuntu 22.04/24.04 workflow has not been remotely run by this delivery. No official build attestation, cross-toolchain byte-identical reproducibility, WSL/Pi execution, or all-input numerical proof is claimed.
+
+[Foundation object/target provenance](../bin/runtime-foundation.build.json) records exact target membership. Selected `.o` and `.map` files are included in the verification ZIP so checks can be repeated without NASM. They can be regenerated with `make test`.

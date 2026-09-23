@@ -16,7 +16,7 @@ def main():
     checks=[]
     with tempfile.TemporaryDirectory(prefix='asmlab gate ') as temp:
         r=Path(temp)/'relocated project'
-        shutil.copytree(ROOT,r,ignore=shutil.ignore_patterns('build','evidence','__pycache__','.git'))
+        shutil.copytree(ROOT,r,ignore=shutil.ignore_patterns('evidence','__pycache__','.git','*.lst','*.log','*.disassembly.txt'))
         def reset():
             for f in ['bin/asmlab','bin/asmlab-debug','bin/asmlab.build.json','bin/asmlab-debug.build.json','src/view.asm']:
                 shutil.copy2(ROOT/f,r/f)

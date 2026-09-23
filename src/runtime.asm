@@ -72,7 +72,7 @@ find_symbol:
     lea r13, [symbols+rax]
     mov rdi, r12
     mov rsi, r13
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .found
     inc rbx
@@ -100,14 +100,14 @@ store_symbol:
     mov rdi, r14
     mov rsi, r12
     mov edx, 32
-    call memcpy
+    call rt_memcpy
     inc qword [symbol_count]
     mov rax, r14
 .copy:
     lea rdi, [rax+32]
     mov rsi, r13
     mov edx, VS
-    call memcpy
+    call rt_memcpy
     DONE
 .full:
     lea rdi, [err_symbols]
@@ -120,7 +120,7 @@ workspace_clear:
     lea rdi, [symbols]
     xor esi, esi
     mov edx, VAR_CAP * SS
-    call memset
+    call rt_memset
     ; ans always has a reserved workspace slot.
     mov byte [symbols], 'a'
     mov byte [symbols+1], 'n'
@@ -135,7 +135,7 @@ expression_reset:
     lea rdi, [nodes]
     xor esi, esi
     mov edx, NODE_CAP * NS
-    call memset
+    call rt_memset
     mov qword [node_count], 0
     mov qword [value_count], 0
     mov qword [parse_depth], 0

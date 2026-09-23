@@ -1,87 +1,96 @@
-# ASMlab 0.1.1
+# ASMlab 0.2.0
 
-**Expression → AST → actual assembly instruction → SIMD registers → result.**
+**Expression → AST → actual assembly instruction → SIMD register state → numerical result.**
 
-A bounded numerical workbench whose application implementation is NASM x86-64 assembly. [한국어](README-KR.md) · [Changelog](CHANGELOG.md) · [Verification](docs/VERIFICATION.md)
+[한국어](README-KR.md) · [Changelog](CHANGELOG.md) · [Runtime ABI](docs/RUNTIME-ABI.md) · [Verification](docs/VERIFICATION.md)
 
-## Native Gate completed
+## Runtime Foundation, not yet Level 3
 
-Both delivered executables were assembled **directly with NASM 2.16.03**, not through the earlier GNU-as syntax bridge. The existing numerical algorithms, grammar and data layout are unchanged.
+The default application now uses original NASM memory/string primitives. Application code calls only the project `rt_*` runtime API; console/file/decimal conversion and libc globals reside in a separate transitional adapter. A libc-backed primitive implementation is built only as a development reference.
 
-| Test execution | Passed | Failed |
-|---|---:|---:|
-| Original regression corpus, release | 14,410 | 0 |
-| Original regression corpus, debug | 14,410 | 0 |
-| Native constants/instructions/trace/profile contract | 1,254 | 0 |
-| **Native Gate total** | **30,074** | **0** |
-| Separate fail-closed/relocation guard tests | 6 | 0 |
+Independent integer conversion, raw Linux syscalls, buffered fd I/O and an own `_start` are implemented and tested in **runtime-smoke**, not yet integrated as the full numerical application's runtime. The application still uses CRT/main, libc I/O, strtod and printf-compatible formatting. No libm, BLAS, LAPACK or Python numerical backend is linked.
 
-The total counts repeated execution of the original corpus on two profiles, not 30,074 distinct expressions. ELF audits pass separately. [Machine-readable gate result](evidence/native/gate-summary.json)
+| Executed checks | Passed |
+|---|---:|
+| Existing regression, release/debug/libc-reference | 14,410 each |
+| Native constant/instruction/capture contract | 1,254 |
+| Independent runtime unit assertions | 26,123 |
+| Runtime boundaries and backend parity | 712 |
+| **Full gate** | **71,319, zero failures** |
+| Separate fail-closed guards | 15, zero failures |
 
-**This remains Level 2.** libc/CRT provides startup, I/O, strings/memory and decimal conversion. No external libm, BLAS, LAPACK or Python runtime evaluates mathematics. libc removal is a later milestone.
+Counts include repeated corpora and per-call ABI assertions, not 71,319 distinct formulas or a proof. [Machine-readable release result](evidence/release-summary.json)
 
-## Run / build
+## Run
 
-Target: **Linux x86-64**. Delivered binaries require glibc 2.34 or later. WSL2 Linux on x64 Windows is an intended target but was not separately device-tested. No Windows-native, ARM64, Raspberry Pi or web-server executable is supplied.
+Target: Linux x86-64. Bundled application executables require glibc 2.34 or later. WSL2 x64 is an intended environment, not separately tested in this delivery. Windows-native, ARM64/Pi and web service targets are not implemented.
 
 ```sh
-chmod +x bin/asmlab bin/asmlab-debug
+chmod +x bin/asmlab bin/asmlab-debug bin/asmlab-runtime-smoke
 ./bin/asmlab
 ./bin/asmlab --bits -e 'sqrt([1,4,9,16]) + 2'
 ./bin/asmlab --json -e '[1,2;3,4] * [5,6;7,8]'
 ```
 
-Build and test on an Ubuntu-family Linux x86-64 machine:
+The last expression returns `{"ok":true,"rows":2,"cols":2,"data":[19,22,43,50]}`. No NASM or Python is needed to execute the numerical application.
+
+## Build and verify
 
 ```sh
 sudo apt-get update
 sudo apt-get install -y nasm gcc make binutils python3
 make clean
 make -j2 test
-python3 tests/gate_guards.py --report build/gate-guards.json
+make test-guards
 ```
 
-`make` builds release (`bin/asmlab`, NASM `-Ox`); `make debug` builds `bin/asmlab-debug` (`-O0`, DWARF). `make test` rebuilds both and runs the gate. `make verify` tests the existing delivered binaries without rebuilding, requiring Python 3.10+ and binutils but not NASM. Input/binary hashes must match their sidecars. `make audit` checks both ELF files; `make disasm` rebuilds and disassembles both.
+`make` builds release, `make debug` builds the debug profile, `make reference` builds the development libc-primitive comparison, and `make foundation` builds standalone smoke and shared test fixtures. `make test` rebuilds all of them and runs the full gate. `make runtime-test` rebuilds and runs the runtime/reference checks.
 
-GCC is a linker driver only; no project C sources are compiled. Python tools are development-only. Default NASM warnings are promoted to errors; optional relocation diagnostics are not all enabled. Missing NASM/build failure cannot silently use GAS or retain a stale successful executable. The optional historical `make validate-gas` target is not a Native Gate substitute.
+`make verify` tests already-delivered artifacts without NASM. It requires Python 3.10+ and binutils. This verification package includes the required **object files and link maps in build/** because provenance is checked before execution. After `make clean`, run `make test` to regenerate them. Sidecar metadata, exact source inventories, object/target hashes and module membership are enforced. These integrity records are not signatures.
 
-## Examples and observation
+GCC/cc is a linker driver, not a compiler for project C code. The old GAS translator is historical only; `make validate-gas` explicitly fails for v0.2.0. Failed native tool lookup/build does not silently reuse stale successful binaries.
+
+## Standalone runtime smoke
+
+```sh
+./bin/asmlab-runtime-smoke --version
+./bin/asmlab-runtime-smoke --i64 -9223372036854775808
+./bin/asmlab-runtime-smoke --u64 18446744073709551615
+./bin/asmlab-runtime-smoke --hex64 18446744073709551615
+printf 'hello\n' | ./bin/asmlab-runtime-smoke --echo
+./bin/asmlab-runtime-smoke --cat examples/walkthrough.asmlab
+```
+
+The smoke has no libc/CRT, interpreter or shared-library dependency, but **also has no mathematical evaluator**. Its binary echo/file copying, integer parsing/formatting and buffered I/O exercise the new foundation. The decimal input to `--hex64` is unsigned; its output is 16 lowercase hex digits. [ABI/error/ownership contract](docs/RUNTIME-ABI.md) · [Actual smoke output](evidence/runtime/smoke-demo.txt)
+
+## Numerical language and trace
 
 ```text
+x = 3
+x^2 + 4^2
 A = [1,2;3,4]
-B = [5,6;7,8]
-A * B
-A .* B
-A + 2
+A*A
+A.*A
+A+2
+A/2
 A'
 sin(pi/4)
 log(e)
 sum(A)
-:bits on
-sqrt([1,4,9,16]) + 2
-:replay
 ```
 
-Replay uses `n`/`p`/`q` followed by Enter. Each frame maps an AST node to the actual watched instruction address, XMM inputs/output, raw bits and MXCSR. [Actual native capture](evidence/native/sqrt-vector-trace.txt)
+All values remain float64 dense matrices, scalars being 1×1. Matrices require comma-separated columns. `/` accepts a scalar right operand; `./` is elementwise. `sum` reduces all elements. Failed assignments preserve previous variables and ans. [Language](docs/LANGUAGE.md) · [Numerics](docs/NUMERICS.md)
 
-This is **post-execution replay of instrumented instructions**, not live CPU single-stepping, JIT compilation or full CPU tracing. `:trace off` still uses the central dispatch/scratch path. Debug/release refer to assembler encoding profiles, not different numerical algorithms.
+`:bits on`, then an expression and `:replay` reveal actual retained SSE2 state. `n`+Enter advances, `p`+Enter goes back, and `q`+Enter leaves. `:step on` automatically opens **post-execution replay**. There is no JIT or complete CPU trace. `:trace off` is not an optimized compute backend. `src/math.asm` and `src/kernels.asm` are unchanged from v0.1.1.
 
-## Contracts and limits
+## Limits and evidence
 
-Real dense row-major float64 only. Matrix dimensions 1..16, 63 user variables, 512 AST nodes, recursion depth 64, input lines up to 4,095 bytes, and 8,192 retained trace frames per expression. Overflowing trace storage is explicitly reported.
+The previous 16×16 matrix, 63 user-variable, 512 AST-node, 64 recursion-depth, 4,095-byte line and 8,192-frame trace bounds remain. sin/cos are restricted to |x|≤1,000,000 radians, sqrt to nonnegative and log to positive real inputs. Powers use scalar integer exponents -1024..1024. Nonfinite results are errors; subnormals/underflow remain allowed.
 
-Comma-separated columns; no implicit multiplication. `*` is matrix/scalar multiplication; `.*` is elementwise. `/` only accepts a scalar right operand. `sum(A)` sums all cells, unlike MATLAB's default column reduction. Failed assignments preserve both the variable and `ans`.
+Tests include protected-page subprocesses, preserved registers/DF/MXCSR, injected partial I/O/EINTR/errors, exact integer limits, independent decimal-adapter rounding checks, default/reference parity and artifact tampering. No all-input correctness, complete memory safety, public-server security or performance superiority is claimed.
 
-`sin/cos`: radians, `abs(x) <= 1,000,000`; `sqrt`: nonnegative real; `log`: positive real; powers: scalar integer exponent -1024..1024. Subnormal/underflow results are allowed, but NaN/infinity results are errors. No all-input correctly-rounded mathematics claim.
+Actual tests ran in a Linux x86-64 container. The updated Ubuntu 22.04/24.04 CI has **not been remotely executed**. The previously attached third-party prebuilt NASM 2.16.03 was rechecked and reused; the tool itself is not shipped. [Toolchain provenance](docs/TOOLCHAIN-PROVENANCE.md)
 
-## Scope and provenance
+[Pi/ARM/server/2D/3D plan](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md) remains documentation only. [Runtime scope, KR](docs/RUNTIME-FOUNDATION-KR.md) · [Roadmap, KR](docs/ROADMAP-KR.md)
 
-Verification ran in a Linux x86-64 container. GitHub Actions is configured for Ubuntu 22.04 and 24.04, but **remote CI was not executed in this delivery**. There is no public-service security validation, ARM/Windows port or cross-device performance claim.
-
-The NASM tool used here was a **third-party prebuilt NASM** from a public `holepunchto/nasm-runtime` workflow artifact. It was not rebuilt from official NASM sources in this environment and is not bundled. [Exact toolchain provenance](docs/TOOLCHAIN-PROVENANCE.md)
-
-The [Pi 5 / server / ARM64 / web graphics plan](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md) is documentation only. No networking, browser UI, plot function or ARM implementation was added. [Roadmap](docs/ROADMAP-KR.md)
-
-[Language](docs/LANGUAGE.md) · [Architecture](docs/ARCHITECTURE.md) · [Numerics](docs/NUMERICS.md) · [L3 boundary](docs/LEVEL3-CONTRACT.md)
-
-Current evidence lives in `evidence/native/`. `evidence/baseline-0.1.0/` contains historical GAS-bridge results, not current native results. Sidecars in `bin/` record exact commands and hashes. `sha256sum -c MANIFEST.sha256` checks the delivered package after extraction, not authenticity or a security certification.
+Current evidence is in `evidence/native/` and `evidence/runtime/`; archived baseline evidence is not a current test run. Check `sha256sum -c MANIFEST.sha256` immediately after unpacking.

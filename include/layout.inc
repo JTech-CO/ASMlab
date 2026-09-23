@@ -1,0 +1,59 @@
+; Core layouts only. Storage is defined ONCE in src/core_storage.asm.
+%ifndef ASMLAB_LAYOUT_INC
+%define ASMLAB_LAYOUT_INC 1
+%define INPUT_CAP 4096
+%define NODE_CAP 512
+%define VALUE_CAP 512
+%define VAR_CAP 64
+%define DIM_CAP 16
+%define ELEM_CAP 256
+%define TRACE_CAP 8192
+%define DEPTH_CAP 64
+%define NS 128
+%define VS 2064
+%define SS 2096
+%define TS 96
+%define N_TYPE 0
+%define N_OP 8
+%define N_LEFT 16
+%define N_RIGHT 24
+%define N_NUM 32
+%define N_NAME 40
+%define N_ROWS 72
+%define N_COLS 80
+%define N_VALUE 88
+%define N_ID 96
+%define N_POS 104
+%define N_NEXT 112
+%define NUM 1
+%define VAR 2
+%define BINARY 3
+%define UNARY 4
+%define FUNC 5
+%define MATRIX 6
+%define ASSIGN 7
+%define T_NUM 256
+%define T_ID 257
+%define T_EMUL 258
+%define T_EDIV 259
+%define F_SIN 1
+%define F_COS 2
+%define F_SQRT 3
+%define F_LOG 4
+%define F_TRANSPOSE 5
+%define F_SUM 6
+%define O_ADDSD 1
+%define O_SUBSD 2
+%define O_MULSD 3
+%define O_DIVSD 4
+%define O_SQRTSD 5
+%define O_ADDPD 6
+%define O_SUBPD 7
+%define O_MULPD 8
+%define O_DIVPD 9
+%define O_SQRTPD 10
+%define O_MOVAPD 11
+%define O_XORPD 12
+
+
+%endif

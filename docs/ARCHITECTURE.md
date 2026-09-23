@@ -1,4 +1,4 @@
-# ASMlab 0.1.1 architecture / 아키텍처
+# ASMlab 0.2.0 architecture / 아키텍처
 
 ## 1. Execution path
 
@@ -35,9 +35,13 @@ The AST is not compiled to new native code. Its operators select existing kernel
 
 ## 2. Dependency boundary
 
-The authored application is `.asm`/`.inc` only. libc/CRT supplies the process entry path, buffered I/O, input file handles, decimal-string conversion, `strcmp`/`strlen`, and `memcpy`/`memset`. It supplies no application mathematical function. `tests/verify.py` uses Python math as an independent development reference; this must not be mistaken for a runtime dependency. `tools/validation_bridge.py` is also development-only.
+The full application uses three separately linked project objects: numerical/CLI core, own memory/string primitives, and an explicitly transitional libc I/O adapter. Core imports only `rt_*` symbols. The adapter alone owns FILE pointers, stdin, console/file calls and strtod. Default builds no longer import libc memory/string entrypoints. CRT startup, the dynamic loader and libc I/O/decimal formatting remain.
 
-`readelf -d`, dynamic symbols and COPY relocations (including `stdin`) audit the executable's actual dependencies. In the delivered build, only `libc.so.6` is a `NEEDED` shared library. The dynamic loader and normal startup objects remain system dependencies.
+`include/abi.inc`, `layout.inc`, and `rt/api.inc` are storage-free; `src/core_storage.asm` defines constants/BSS exactly once. Numerical source modules still form one translation unit. The development reference backend replaces only the primitive object with `dev/runtime/libc_primitives.asm`; it is not the default application.
+
+A separate foundation contains integer conversion, fd buffering, raw syscalls and an own `_start`. Only `bin/asmlab-runtime-smoke` uses this standalone entry. It does not include the evaluator and is not a complete Level 3 ASMlab. Independent shared fixtures and fault injection are test infrastructure, not linked into production.
+
+[Runtime ABI](RUNTIME-ABI.md) · [Implemented scope](RUNTIME-FOUNDATION-KR.md)
 
 ## 3. Bounded layouts
 
@@ -93,11 +97,11 @@ No browser runtime, HTML renderer, ncurses dependency, or remote service is invo
 
 Syntax must fully parse before evaluation. Nonrectangular matrices, dimension mismatch, undefined variables, domain failures, invalid numeric results, excessive recursion/nodes, or insufficient workspace prevent assignment commit. `ans` updates only on successful expressions. A script continues after expression errors but reports a nonzero final exit status.
 
-Input streams are read through a bounded assembly loop around libc `fgetc`, rather than accepting a valid-looking prefix of an oversized line. Embedded NUL/terminal-control bytes are replaced for safe reporting and the entire line is rejected. The source language permits ASCII identifiers; comments can contain ordinary UTF-8 text. All reported positions are byte offsets.
+Input streams are read through a bounded assembly loop around `rt_input_getc` (the adapter currently uses libc `fgetc`), rather than accepting a valid-looking prefix of an oversized line. Embedded NUL/terminal-control bytes are replaced for safe reporting and the entire line is rejected. The source language permits ASCII identifiers; comments can contain ordinary UTF-8 text. All reported positions are byte offsets.
 
 ## 8. Build and portability boundaries
 
-NASM's `elf64` output is the verified native build path in v0.1.1. Both supplied release/debug executables were assembled directly with NASM 2.16.03 and tested. The GNU assembler bridge is a separate optional historical comparison, never a fallback for the Native Gate. The target is little-endian Linux x86-64, libc/CRT, and the System V AMD64 calling convention. Native Windows requires a different object format, ABI, and OS adaptation; ARM requires different instructions and kernels. Those ports are absent. The future Pi/server plan is documentation only; see [plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md).
+NASM's `elf64` output is the verified native build path in v0.2.0. Supplied release/debug/reference and foundation artifacts were directly assembled with NASM 2.16.03 and tested. The old single-unit GAS bridge is retained as historical source only; the v0.2.0 build target explicitly refuses it and never falls back to it. The target is little-endian Linux x86-64, libc/CRT, and the System V AMD64 calling convention. Native Windows requires a different object format, ABI, and OS adaptation; ARM requires different instructions and kernels. Those ports are absent. The future Pi/server plan is documentation only; see [plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md).
 
 The binary is deliberately non-PIE for straightforward address/disassembly inspection, with a non-executable stack, RELRO, and immediate binding. It is an educational bounded interpreter, not a security sandbox for hostile multi-user execution or a performance replacement for optimized numerical libraries.
 

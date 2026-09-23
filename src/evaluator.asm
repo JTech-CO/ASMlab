@@ -43,12 +43,12 @@ eval_node:
 .variable:
     lea rdi, [r12+N_NAME]
     lea rsi, [name_pi]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .pi
     lea rdi, [r12+N_NAME]
     lea rsi, [name_e]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .e
     lea rdi, [r12+N_NAME]
@@ -64,7 +64,7 @@ eval_node:
     mov rdi, rax
     mov rsi, r13
     mov edx, VS
-    call memcpy
+    call rt_memcpy
     jmp .finish
 .pi:
     lea r13, [pi]
@@ -238,17 +238,17 @@ assignment_allowed:
     FRAME 0
     mov r12, rdi
     lea rsi, [name_pi]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .readonly
     mov rdi, r12
     lea rsi, [name_e]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .readonly
     mov rdi, r12
     lea rsi, [name_ans]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .readonly
     mov rdi, r12

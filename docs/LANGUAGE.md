@@ -1,4 +1,4 @@
-# ASMlab 0.1.1 language reference
+# ASMlab 0.2.0 language reference
 
 ## Data model
 

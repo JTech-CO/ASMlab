@@ -2,6 +2,7 @@
 # Native Gate runtime audit: this is Level 2, NOT an external-runtime-free ELF.
 set -eu
 binary=${1:-./bin/asmlab}
+mode=${2:-native}
 [ -f "$binary" ] || { echo "Missing executable: $binary" >&2; exit 1; }
 header=$(LC_ALL=C readelf -hW "$binary")
 printf '%s\n' "$header" | grep -q 'Class:.*ELF64' || exit 1
@@ -19,11 +20,18 @@ printf '%s\n' "$imports"
 names=$(printf '%s\n' "$imports" | awk '{print $NF}' | sed 's/@.*//')
 for name in $names; do
   case "$name" in
-    __gmon_start__|__libc_start_main|__cxa_finalize|_ITM_deregisterTMCloneTable|_ITM_registerTMCloneTable|fclose|ferror|fflush|fgetc|fgets|fopen|isatty|memcpy|memset|printf|puts|strcmp|strlen|strtod) ;;
+    __gmon_start__|__libc_start_main|__cxa_finalize|_ITM_deregisterTMCloneTable|_ITM_registerTMCloneTable|fclose|ferror|fflush|fgetc|fgets|fopen|isatty|memcpy|memmove|memset|memcmp|strnlen|printf|puts|strcmp|strlen|strtod|stdin) ;;
     *) echo "FAIL: unexpected dynamic function import: $name" >&2; exit 1;;
   esac
 done
-# stdin is a COPY relocation/data symbol, not an undefined function on this ELF.
+if [ "$mode" = native ]; then
+  for name in $names; do
+    case "$name" in
+      memcpy|memmove|memset|memcmp|strlen|strnlen|strcmp) echo "FAIL: default native runtime imports $name" >&2; exit 1;;
+    esac
+  done
+fi
+# v0.2.0 stdin is referenced through the adapter's GOT, not a core global.
 LC_ALL=C readelf -rW "$binary" | grep 'COPY' || true
 programs=$(LC_ALL=C readelf -lW "$binary")
 stack=$(printf '%s\n' "$programs" | grep GNU_STACK)

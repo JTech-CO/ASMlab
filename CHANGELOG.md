@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.2.0 - Runtime Foundation (2026-09-23)
+
+### Implemented
+- Separate `rt_*` application API; all FILE pointers, libc globals, console/file and binary64 conversion imports reside in `src/rt/adapters/libc_io.asm`.
+- Native NASM memory/string primitives in default release/debug; development-only libc reference primitive backend for differential tests.
+- Storage-free ABI/layout headers and one `core_storage.asm` definition; runtime modules linked as separate ELF objects.
+- Independent bounded uint64/int64/hex formatting and strict integer parsing with explicit overflow/capacity errors.
+- Independent Linux syscall/fd foundation, buffered Reader/Writer, partial-write progress, sticky errors and EOF/error separation.
+- Own `_start` and libc/CRT-free **runtime-smoke**, not the full evaluator.
+- ABI probes, protected-page subprocesses, deterministic syscall fault injection, integer boundaries and exact-rational checks of the retained libc decimal adapter.
+- Strict multi-object provenance, complete input inventories, reference/default parity and fail-closed artifact tests.
+
+### Preserved / deferred
+- `src/math.asm` and `src/kernels.asm` unchanged from v0.1.1. Existing grammar, fixed limits, error/assignment behavior and captured numerical trace retained.
+- Full application remains Level 2: CRT/libc, strtod and printf-compatible output adapter are still present. Own binary64 decimal I/O and whole-app runtime integration are v0.3.0 work.
+- No ARM64/Pi, Windows native, API server, web UI, plotting, dynamic allocator or optimized compute backend added. Pi/web plan preserved as documentation only.
+- Historical GAS converter retained as an archive tool; `make validate-gas` now explicitly rejects use as a v0.2.0 build path.
+
+[Runtime scope](docs/RUNTIME-FOUNDATION-KR.md) · [ABI](docs/RUNTIME-ABI.md) · [Evidence](docs/VERIFICATION.md)
+
 ## 0.1.1 - 2026-09-23 - Native Gate
 
 - Built and tested native NASM release (`-Ox`) and debug (`-O0`, DWARF) executables, replacing the unverified-native status of v0.1.0.

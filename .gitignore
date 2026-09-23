@@ -1,7 +1,10 @@
 /build/
 /bin/asmlab
 /bin/asmlab-debug
+/bin/asmlab-libc-reference
+/bin/asmlab-runtime-smoke
 /bin/asmlab-validation
+/bin/tests/
 /bin/*.build.json
 /bin/BUILD_ORIGIN.txt
 __pycache__/

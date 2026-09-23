@@ -1,4 +1,4 @@
-$ sh tests/audit.sh /mnt/data/ASMlab-v0.1.1/bin/asmlab-debug
+$ sh tests/audit.sh /mnt/data/ASMlab-v0.2.0/bin/asmlab-debug
  0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
                  w __gmon_start__
                  U __libc_start_main@GLIBC_2.34
@@ -9,14 +9,10 @@ $ sh tests/audit.sh /mnt/data/ASMlab-v0.1.1/bin/asmlab-debug
                  U fgets@GLIBC_2.2.5
                  U fopen@GLIBC_2.2.5
                  U isatty@GLIBC_2.2.5
-                 U memcpy@GLIBC_2.14
-                 U memset@GLIBC_2.2.5
                  U printf@GLIBC_2.2.5
                  U puts@GLIBC_2.2.5
-                 U strcmp@GLIBC_2.2.5
-                 U strlen@GLIBC_2.2.5
+                 U stdin@GLIBC_2.2.5
                  U strtod@GLIBC_2.2.5
-0000000000408010  0000001100000005 R_X86_64_COPY          0000000000408010 stdin@GLIBC_2.2.5 + 0
   GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
 PASS: ELF64 x86-64 EXEC; libc only; approved function imports; NX stack; no RWX LOAD; RELRO/NOW; SSE2.
 Level 2 only. No claim of complete security isolation or Level 3 independence.

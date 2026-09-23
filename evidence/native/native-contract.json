@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "case_count": 1254,
   "group_counts": {
     "release.elf": 1,

@@ -1,0 +1,61 @@
+$ readelf -lW bin/asmlab-runtime-smoke
+
+Elf file type is EXEC (Executable file)
+Entry point 0x401000
+There are 6 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000400000 0x0000000000400000 0x0001b4 0x0001b4 R   0x1000
+  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x000891 0x000891 R E 0x1000
+  LOAD           0x002000 0x0000000000402000 0x0000000000402000 0x000122 0x000122 R   0x1000
+  LOAD           0x000130 0x0000000000403130 0x0000000000403130 0x000000 0x002048 RW  0x1000
+  NOTE           0x000190 0x0000000000400190 0x0000000000400190 0x000024 0x000024 R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.build-id 
+   01     .text 
+   02     .rodata 
+   03     .bss 
+   04     .note.gnu.build-id 
+   05     
+
+$ readelf -dW bin/asmlab-runtime-smoke
+
+There is no dynamic section in this file.
+
+$ nm -u bin/asmlab-runtime-smoke
+
+$ nm -u build/release/asmlab.o
+                 U rt_console_printf
+                 U rt_console_puts
+                 U rt_decimal_from_cstr
+                 U rt_input_close
+                 U rt_input_error
+                 U rt_input_getc
+                 U rt_input_gets
+                 U rt_input_open_read
+                 U rt_input_stdin
+                 U rt_is_tty
+                 U rt_memcpy
+                 U rt_memset
+                 U rt_output_flush
+                 U rt_strcmp
+                 U rt_strlen
+
+$ nm -u build/release/rt-primitives.o
+
+$ nm -u build/release/rt-libc-io.o
+                 U fclose
+                 U ferror
+                 U fflush
+                 U fgetc
+                 U fgets
+                 U fopen
+                 U isatty
+                 U printf
+                 U puts
+                 U stdin
+                 U strtod

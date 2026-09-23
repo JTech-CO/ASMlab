@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "baseline_zip_sha256": "236d9fc66ff1a39dc87ccd4f11e2cef57fcc3e053e72799281a4e4f8ee9f62d9",
+  "result_records": 520,
+  "baseline_exit": 1,
+  "updated_exit": 1,
+  "exact_json_match": true,
+  "unchanged_algorithm_sources": {
+    "src/math.asm": true,
+    "src/kernels.asm": true
+  },
+  "trace_comparisons": [
+    {
+      "expression": "sqrt([1,4,9])+2",
+      "frame_count": 4,
+      "equal_ignoring_address": true
+    },
+    {
+      "expression": "[1,2;3,4]*[5,6;7,8]",
+      "frame_count": 12,
+      "equal_ignoring_address": true
+    },
+    {
+      "expression": "sin(pi/4)",
+      "frame_count": 24,
+      "equal_ignoring_address": true
+    },
+    {
+      "expression": "log(2)",
+      "frame_count": 32,
+      "equal_ignoring_address": true
+    },
+    {
+      "expression": "-[0,2,3]",
+      "frame_count": 2,
+      "equal_ignoring_address": true
+    }
+  ],
+  "limitations": [
+    "One-time comparison with supplied v0.1.1 artifact; not an independent math oracle."
+  ]
+}

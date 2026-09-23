@@ -1,0 +1,11 @@
+$ bin/asmlab-runtime-smoke --version
+ASMlab 0.2.0 runtime-smoke | Linux x86-64 | no libc/CRT
+
+$ bin/asmlab-runtime-smoke --i64 -9223372036854775808
+-9223372036854775808
+
+$ bin/asmlab-runtime-smoke --u64 18446744073709551615
+18446744073709551615
+
+$ bin/asmlab-runtime-smoke --hex64 18446744073709551615
+ffffffffffffffff

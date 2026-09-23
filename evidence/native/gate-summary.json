@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "status": "passed",
-  "executed_at_utc": "2026-09-23T02:18:59.713288+00:00",
+  "executed_at_utc": "2026-09-23T04:28:35.325090+00:00",
   "steps": [
     {
       "name": "release-regression",

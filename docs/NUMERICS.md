@@ -1,4 +1,4 @@
-# ASMlab 0.1.1 - numerical contract
+# ASMlab 0.2.0 - numerical contract
 
 This document describes the algorithms implemented in `src/math.asm` and `src/kernels.asm`. It is an implementation specification, not a claim of complete MATLAB compatibility or of correctly rounded elementary functions for every input.
 
@@ -8,7 +8,7 @@ Every scalar and matrix element is IEEE 754 binary64 (float64). Matrices store e
 
 Each expression starts with MXCSR = `0x1f80`: rounding to nearest, masked floating-point exceptions, and no flush-to-zero or denormals-are-zero mode. Sticky exception status may change during execution. Each watched instruction records MXCSR both before and after execution. A nonzero precision/underflow status bit is not by itself a language error. Arithmetic domains and finite results are checked separately.
 
-Decimal text is tokenized in assembly and converted with libc `strtod`. This is the intentional Level 2 I/O boundary; the program is not claiming an independently implemented decimal conversion algorithm. Output formatting likewise uses libc. These facilities do not evaluate expressions or implement the mathematical kernels.
+Decimal text is tokenized in assembly and passed through `rt_decimal_from_cstr` to libc `strtod` in the explicit I/O adapter. This is the intentional Level 2 I/O boundary; the program is not claiming an independently implemented decimal conversion algorithm. Output formatting likewise reaches libc through `rt_console_printf`. The independent integer parser/formatter in v0.2.0 is not the application binary64 converter. These facilities do not evaluate expressions or implement the mathematical kernels.
 
 ## Function domains
 
@@ -77,7 +77,7 @@ The summation order therefore differs from a simple sequential scalar loop and m
 
 ## Accuracy evidence for the delivered executable
 
-The fixed-seed suite uses host Python's standard-library `math` as a reference. It is not a high-precision MPFR oracle. The results below were reproduced on both directly NASM-built v0.1.1 profiles. The original 14,410-case regression script is unchanged from v0.1.0.
+The fixed-seed suite uses host Python's standard-library `math` as a reference. It is not a high-precision MPFR oracle. The results below were reproduced on the directly NASM-built v0.2.0 release/debug profiles and development libc-reference backend. The original 14,410-case regression script is unchanged from v0.1.0.
 
 | Function | Cases | Maximum observed absolute difference | Acceptance criterion |
 |---|---:|---:|---|
@@ -86,9 +86,13 @@ The fixed-seed suite uses host Python's standard-library `math` as a reference. 
 | log | 3,008 | 1.1368683772161603e-13 | Absolute difference <= 3e-13 |
 | sqrt | 1,004 | 0 in these samples | Relative difference <= 1e-15; exact comparison at zero |
 
-The full suite includes 11,835 numerical expression cases and additional functional, malformed-input, capacity, replay, and instruction-capture checks. Its 14,410 total checks passed independently on release and debug. A separate 1,254-assertion Native Gate contract covers constant encoding, instruction bytes, captured state and profile parity. These additional checks do not expand the stated mathematical error guarantees. A single matrix case may compare multiple cells; counts here are test cases, not independent floating-point operations.
+The full suite includes 11,835 numerical expression cases and additional functional, malformed-input, capacity, replay, and instruction-capture checks. Its 14,410 total checks passed independently on release, debug and the libc-reference backend. A separate 1,254-assertion Native Gate contract covers constant encoding, instruction bytes, captured state and profile parity. These additional checks do not expand the stated mathematical error guarantees. A single matrix case may compare multiple cells; counts here are test cases, not independent floating-point operations.
 
 No finite test sample establishes an all-input correctness theorem. In particular, zero observed square-root difference does not prove every behavior of the entire expression evaluator. See [VERIFICATION.md](VERIFICATION.md) and the machine-readable [verification report](../evidence/native/release-regression.json).
+
+## v0.2.0 decimal boundary tests
+
+The retained `strtod` adapter is tested separately against exact integer/rational nearest-even rounding of decimal input, including signed zero, normal/subnormal boundaries and overflow. Test-only long strings do not enlarge the application's token limit. These checks exercise libc through the new boundary; they are not an implementation of an independent binary64 parser. The reference converter has seven fixed expected-bit sanity checks. No MPFR oracle or all-input rounding proof is claimed.
 
 ## Trace precision and performance interpretation
 

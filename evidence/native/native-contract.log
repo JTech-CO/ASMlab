@@ -1,7 +1,7 @@
-$ /opt/pyvenv/bin/python3 tests/native_contract.py --report /mnt/data/ASMlab-v0.1.1/build/evidence/native-contract.json
+$ /opt/pyvenv/bin/python3 tests/native_contract.py --report /mnt/data/ASMlab-v0.2.0/build/evidence/native/native-contract.json
 {
   "schema_version": 1,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "case_count": 1254,
   "group_counts": {
     "release.elf": 1,

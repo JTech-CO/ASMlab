@@ -2,7 +2,7 @@ section .rodata
 usage: db 'Usage: asmlab [--quiet|--json] [--all] [--bits] [--step]',10
        db '              [--color|--no-color] [-e EXPRESSION | -f FILE]',10
        db '       asmlab --help | --version',10
-       db 'Runtime: Linux x86-64 / WSL2; libc for console, decimal conversion, and memory.',10
+       db 'Runtime: Linux x86-64 / WSL2; libc I/O/decimal adapter; own memory/string primitives.',10
        db 'All math, parser, evaluator, tracing, and terminal UI are NASM assembly.',0
 help_text: db 'EXPRESSIONS',10
        db '  x = 2^3 + 1                  float64 scalars; pi, e, and ans',10
@@ -24,7 +24,6 @@ help_text: db 'EXPRESSIONS',10
        db '  No complex/symbolic math, indexing, plots, solver, or MATLAB compatibility.',0
 startup_tip: db 'Type :help for syntax. Try sqrt([1,4,9,16]) + 2',0
 prompt: db 10,'asmlab> ',0
-file_mode: db 'r',0
 opt_help: db '--help',0
 opt_h: db '-h',0
 opt_version: db '--version',0
@@ -70,14 +69,14 @@ main:
     mov qword [trace_limit], 6
     mov qword [ast_draw_limit], NODE_CAP
     xor edi, edi
-    call isatty
+    call rt_is_tty
     mov ebx, eax
     mov edi, 1
-    call isatty
+    call rt_is_tty
     mov [color_enabled], rax
     and eax, ebx
     mov [interactive_mode], rax
-    mov rax, [stdin]
+    call rt_input_stdin
     mov [input_stream], rax
     call workspace_clear
     mov ebx, 1
@@ -87,67 +86,67 @@ main:
     mov r14, [r13+rbx*8]
     mov rdi, r14
     lea rsi, [opt_help]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .help
     mov rdi, r14
     lea rsi, [opt_h]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .help
     mov rdi, r14
     lea rsi, [opt_version]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .version
     mov rdi, r14
     lea rsi, [opt_quiet]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .quiet
     mov rdi, r14
     lea rsi, [opt_q]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .quiet
     mov rdi, r14
     lea rsi, [opt_json]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .json
     mov rdi, r14
     lea rsi, [opt_all]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .all
     mov rdi, r14
     lea rsi, [opt_bits]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .bits
     mov rdi, r14
     lea rsi, [opt_step]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .step
     mov rdi, r14
     lea rsi, [opt_color]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .color
     mov rdi, r14
     lea rsi, [opt_nocolor]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .nocolor
     mov rdi, r14
     lea rsi, [opt_expr]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .expr
     mov rdi, r14
     lea rsi, [opt_file]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .file
     jmp .badargs
@@ -204,8 +203,7 @@ main:
     cmp qword [rsp], 2
     jne .read_loop
     mov rdi, [rsp+8]
-    lea rsi, [file_mode]
-    call fopen
+    call rt_input_open_read
     test rax, rax
     jz .open_error
     mov [input_stream], rax
@@ -215,13 +213,13 @@ main:
     jmp .read_loop
 .single_expr:
     mov rdi, [rsp+8]
-    call strlen
+    call rt_strlen
     cmp rax, INPUT_CAP
     jae .long_expr
     lea rdx, [rax+1]
     lea rdi, [input_buf]
     mov rsi, [rsp+8]
-    call memcpy
+    call rt_memcpy
     call process_line
     jmp .finish
 .read_loop:
@@ -233,9 +231,9 @@ main:
     jne .read
     lea rdi, [prompt]
     xor eax, eax
-    call printf
+    call rt_console_printf
     xor edi, edi
-    call fflush
+    call rt_output_flush
 .read:
     call read_input_line
     test eax, eax
@@ -264,14 +262,14 @@ main:
     jmp .read_loop
 .eof:
     mov rdi, [input_stream]
-    call ferror
+    call rt_input_error
     test eax, eax
     jnz .read_error
 .finish:
     cmp qword [rsp+16], 0
     je .return
     mov rdi, [input_stream]
-    call fclose
+    call rt_input_close
 .return:
     mov eax, [exit_status]
     DONE
@@ -312,7 +310,7 @@ process_line:
     FRAME 0
     ; Strip trailing whitespace. Leading whitespace is accepted.
     lea rdi, [input_buf]
-    call strlen
+    call rt_strlen
     lea r12, [input_buf]
 .trim:
     test rax, rax
@@ -362,7 +360,7 @@ process_line:
     lea rdi, [last_input]
     lea rsi, [input_buf]
     mov edx, INPUT_CAP
-    call memcpy
+    call rt_memcpy
     call parse_statement
     cmp qword [err_msg], 0
     jne .error
@@ -408,67 +406,67 @@ process_command:
     FRAME 0
     mov r12, rdi
     lea rsi, [cmd_help]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .help
     mov rdi, r12
     lea rsi, [cmd_vars]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .vars
     mov rdi, r12
     lea rsi, [cmd_clear]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .clear
     mov rdi, r12
     lea rsi, [cmd_quit]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .quit
     mov rdi, r12
     lea rsi, [cmd_exit]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .quit
     mov rdi, r12
     lea rsi, [cmd_traceon]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .traceon
     mov rdi, r12
     lea rsi, [cmd_traceoff]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .traceoff
     mov rdi, r12
     lea rsi, [cmd_traceall]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .traceall
     mov rdi, r12
     lea rsi, [cmd_bitson]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .bitson
     mov rdi, r12
     lea rsi, [cmd_bitsoff]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .bitsoff
     mov rdi, r12
     lea rsi, [cmd_stepon]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .stepon
     mov rdi, r12
     lea rsi, [cmd_stepoff]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .stepoff
     mov rdi, r12
     lea rsi, [cmd_replay]
-    call strcmp
+    call rt_strcmp
     test eax, eax
     jz .replay
     mov qword [err_msg], 0
@@ -531,7 +529,7 @@ process_command:
     DONE
 
 ; Return 1=line, 0=EOF, -1=overlong, -2=control byte, -3=I/O failure.
-; fgetc is libc-buffered. We reject the ENTIRE line, not a truncated prefix.
+; rt_input_getc uses an opaque, backend-owned buffered stream. We reject the ENTIRE line, not a truncated prefix.
 read_input_line:
     FRAME 0
     xor ebx, ebx
@@ -541,7 +539,7 @@ read_input_line:
     mov qword [input_fault_pos], 0
 .loop:
     mov rdi, [input_stream]
-    call fgetc
+    call rt_input_getc
     cmp eax, -1
     je .eof
     mov r13d, 1
@@ -574,7 +572,7 @@ read_input_line:
     jmp .loop
 .eof:
     mov rdi, [input_stream]
-    call ferror
+    call rt_input_error
     test eax, eax
     jnz .ioerror
     test r13d, r13d

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "version": "0.2.0",
+  "status": "passed",
+  "executed_at_utc": "2026-09-23T04:28:38.267938+00:00",
+  "steps": [
+    {
+      "name": "runtime-boundary",
+      "exit_code": 0
+    },
+    {
+      "name": "runtime-unit",
+      "exit_code": 0
+    },
+    {
+      "name": "libc-reference-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "libc-reference-audit",
+      "exit_code": 0
+    }
+  ],
+  "counts": {
+    "runtime-boundary": 712,
+    "runtime-unit": 26123,
+    "libc-reference-regression": 14410
+  },
+  "limitations": [
+    "Standalone runtime foundation only is no-libc; full ASMlab is still Level 2.",
+    "No ARM64/server/graph implementation or hardware verification."
+  ],
+  "total_assertions": 41245,
+  "failure_count": 0
+}
