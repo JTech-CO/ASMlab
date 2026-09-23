@@ -1,6 +1,6 @@
 ; Assembly-only terminal views and capture replay. No browser/JS renderer.
 section .rodata
-banner: db 'ASMlab 0.2.0 | NASM x86-64 | float64 | SSE2',0
+banner: db 'ASMlab 0.3.0 | NASM x86-64 | float64 | SSE2',0
 rule: db '--------------------------------------------------------------------------',0
 fmt_panel: db 10,'%s',10,0
 fmt_panel_color: db 10,27,'[1;36m%s',27,'[0m',10,0
@@ -77,7 +77,7 @@ panel:
     lea rdi, [fmt_panel_color]
 .plain:
     xor eax, eax
-    jmp rt_console_printf
+    jmp rt_console_format
 
 render_ast:
     FRAME 0
@@ -104,7 +104,7 @@ draw_ast:
     lea rdx, [empty]
     mov rcx, [r12+N_ID]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     mov rax, [r12+N_TYPE]
     cmp rax, NUM
     je .number
@@ -127,7 +127,7 @@ draw_ast:
     lea rdi, [fmt_astnum]
     movsd xmm0, [r12+N_NUM]
     mov eax, 1
-    call rt_console_printf
+    call rt_console_format
     jmp .shape
 .variable:
     lea rdi, [fmt_astvar]
@@ -176,7 +176,7 @@ draw_ast:
     lea rdi, [fmt_astbin]
 .print_label:
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .shape:
     mov rax, [r12+N_VALUE]
     test rax, rax
@@ -185,12 +185,12 @@ draw_ast:
     mov rsi, [rax]
     mov rdx, [rax+8]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     jmp .children
 .noshape:
     lea rdi, [fmt_astnl]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .children:
     cmp qword [r12+N_TYPE], MATRIX
     je .matrix_children
@@ -231,52 +231,52 @@ draw_frame:
     mov rdx, [r13+8]
     mov rcx, [r13+16]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [fmt_instruction]
     mov rsi, [r13+24]
     lea rax, [op_names]
     mov rdx, [rax+r14*8]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     SAY trace_lanes
     lea rdi, [fmt_before]
     movsd xmm0, [r13+32]
     movsd xmm1, [r13+40]
     mov eax, 2
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [fmt_source]
     movsd xmm0, [r13+48]
     movsd xmm1, [r13+56]
     mov eax, 2
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [fmt_after]
     movsd xmm0, [r13+64]
     movsd xmm1, [r13+72]
     mov eax, 2
-    call rt_console_printf
+    call rt_console_format
     cmp qword [trace_bits], 0
     je .mxcsr
     lea rdi, [fmt_raw_before]
     mov rsi, [r13+32]
     mov rdx, [r13+40]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [fmt_raw_source]
     mov rsi, [r13+48]
     mov rdx, [r13+56]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [fmt_raw_after]
     mov rsi, [r13+64]
     mov rdx, [r13+72]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .mxcsr:
     lea rdi, [fmt_mxcsr]
     mov rsi, [r13+88]
     mov rdx, [r13+80]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     DONE
 
 render_trace:
@@ -303,7 +303,7 @@ render_trace:
     mov rdx, [trace_count]
     mov rcx, [trace_total]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     mov rax, [trace_total]
     cmp rax, [trace_count]
     jbe .tip
@@ -326,7 +326,7 @@ print_value_table:
     mov rsi, [r12]
     mov rdx, [r12+8]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     xor r13d, r13d
 .block:
     cmp r13, [r12+8]
@@ -341,7 +341,7 @@ print_value_table:
     mov rsi, r13
     lea rdx, [r14-1]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .rows:
     xor r15d, r15d
 .row:
@@ -350,7 +350,7 @@ print_value_table:
     lea rdi, [fmt_row]
     mov rsi, r15
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     mov rbx, r13
 .cell:
     cmp rbx, r14
@@ -361,13 +361,13 @@ print_value_table:
     movsd xmm0, [r12+16+rax*8]
     lea rdi, [fmt_cell]
     mov eax, 1
-    call rt_console_printf
+    call rt_console_format
     inc rbx
     jmp .cell
 .endrow:
     lea rdi, [fmt_newline]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     inc r15
     jmp .row
 .nextblock:
@@ -385,7 +385,7 @@ print_value_plain:
     je .start
     lea rdi, [fmt_open]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .start:
     xor ebx, ebx
 .loop:
@@ -402,12 +402,12 @@ print_value_plain:
     lea rdi, [fmt_semicolon]
 .separator:
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .number:
     movsd xmm0, [r12+16+rbx*8]
     lea rdi, [fmt_plainnum]
     mov eax, 1
-    call rt_console_printf
+    call rt_console_format
     inc rbx
     jmp .loop
 .end:
@@ -415,11 +415,11 @@ print_value_plain:
     je .newline
     lea rdi, [fmt_close]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .newline:
     lea rdi, [fmt_newline]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     DONE
 
 print_json:
@@ -429,7 +429,7 @@ print_json:
     mov rsi, [r12]
     mov rdx, [r12+8]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     mov r13, [r12]
     imul r13, [r12+8]
     xor ebx, ebx
@@ -440,18 +440,18 @@ print_json:
     jz .number
     lea rdi, [fmt_json_comma]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
 .number:
     lea rdi, [fmt_plainnum]
     movsd xmm0, [r12+16+rbx*8]
     mov eax, 1
-    call rt_console_printf
+    call rt_console_format
     inc rbx
     jmp .loop
 .done:
     lea rdi, [fmt_json_end]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     DONE
 
 render_error:
@@ -462,20 +462,20 @@ render_error:
     mov rsi, [err_pos]
     mov rdx, [err_msg]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [fmt_error_input]
     lea rsi, [input_buf]
     mov rdx, [err_pos]
     lea rcx, [empty]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     DONE
 .json:
     lea rdi, [fmt_json_error]
     mov rsi, [err_msg]
     mov rdx, [err_pos]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     DONE
 
 render_result:
@@ -487,7 +487,7 @@ render_result:
     lea rdi, [fmt_input]
     lea rsi, [last_input]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     mov qword [ast_draw_limit], NODE_CAP
     call render_ast
     call render_trace
@@ -523,7 +523,7 @@ render_workspace:
     lea rdi, [fmt_varname]
     mov rsi, r12
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [r12+32]
     call print_value_table
     inc rbx
@@ -543,13 +543,13 @@ replay_trace:
 .frame:
     lea rdi, [replay_clear]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     SAY banner
     SAY replay_caption
     lea rdi, [fmt_input]
     lea rsi, [last_input]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     mov qword [ast_draw_limit], 10
     call render_ast
     cmp qword [node_count], 10
@@ -565,10 +565,10 @@ replay_trace:
     mov rdx, [trace_count]
     mov rcx, [trace_total]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     lea rdi, [replay_prompt]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     xor edi, edi
     call rt_output_flush
     call rt_input_stdin

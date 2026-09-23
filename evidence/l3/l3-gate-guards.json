@@ -1,0 +1,42 @@
+{
+  "case_count": 9,
+  "failure_count": 0,
+  "checks": [
+    {
+      "name": "relocated_l3_tree_verifies",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:bin/tests/decimal-native.so",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:build/release/rt-decimal-parse.o",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:build/release/asmlab.map",
+      "passed": true
+    },
+    {
+      "name": "reject_before_execution:src/rt/decimal_parse.asm",
+      "passed": true
+    },
+    {
+      "name": "hidden_library_link_argument_rejected",
+      "passed": true
+    },
+    {
+      "name": "libc_in_native_decimal_fixture_rejected",
+      "passed": true
+    },
+    {
+      "name": "missing_decimal_fixture_rejected",
+      "passed": true
+    },
+    {
+      "name": "missing_nasm_clears_stale_l3_binary",
+      "passed": true
+    }
+  ]
+}

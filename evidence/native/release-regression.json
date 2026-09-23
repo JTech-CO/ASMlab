@@ -114,7 +114,7 @@
     }
   },
   "reference": "host Python standard-library math and direct scalar formulas",
-  "elapsed_seconds": 0.196,
+  "elapsed_seconds": 0.212,
   "limitations": [
     "Finite seeded tests are not a proof of correct rounding.",
     "Fuzz tests check bounded execution and structured output, not all semantics.",

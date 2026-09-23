@@ -1,97 +1,113 @@
-# ASMlab v0.2.0 검증 보고서
+# ASMlab v0.3.0 - L3-Core 검증 보고서
 
-작성일: 2026-09-23. 대상: 이 패키지의 NASM 직접 빌드 Linux x86-64 실행 파일과 독립 런타임 시험 fixture.
+**검증일: 2026-09-23. 대상: 동봉한 Linux x86-64 NASM release/debug 앱과 개발용 비교·시험 산출물.**
 
-## 1. 결과와 범위
+## 1. 실제 결과
 
-**전체 릴리스 검사 71,319개 assertion 통과, 실패 0. 별도 실패 차단 검사 15개 통과, 실패 0.**
+**전체 177,833개 assertion 통과, 실패 0. 별도 실패 차단 검사 24개 통과, 실패 0.**
 
-| 구성 | 검사 수 | 근거 |
+| 구성 | 통과 수 | 결과 |
 |---|---:|---|
-| 기본 release 기존 회귀 | 14,410 | [release-regression.json](../evidence/native/release-regression.json) |
-| debug 기존 회귀 | 14,410 | [debug-regression.json](../evidence/native/debug-regression.json) |
-| 기존 네이티브 상수·명령·캡처 계약 | 1,254 | [native-contract.json](../evidence/native/native-contract.json) |
-| libc primitive 비교 빌드 기존 회귀 | 14,410 | [libc-reference-regression.json](../evidence/runtime/libc-reference-regression.json) |
-| 독립 기본 루틴·ABI·입출력·decimal 어댑터 | 26,123 | [runtime-unit.json](../evidence/runtime/runtime-unit.json) |
-| 호출 경계·오브젝트·reference 비교 | 712 | [runtime-boundary.json](../evidence/runtime/runtime-boundary.json) |
-| **합계** | **71,319** | [release-summary.json](../evidence/release-summary.json) |
-| 기존 guard / 추가 runtime guard | 6 / 9 | [기존 6개](../evidence/native/gate-guards.json), [추가 9개](../evidence/runtime/runtime-gate-guards.json) |
+| release 기존 회귀 | 14,410 | [report](../evidence/native/release-regression.json) |
+| debug 기존 회귀 | 14,410 | [report](../evidence/native/debug-regression.json) |
+| 네이티브 상수·명령·레지스터 계약 | 1,254 | [report](../evidence/native/native-contract.json) |
+| 개발용 libc reference 기존 회귀 | 14,410 | [report](../evidence/runtime/libc-reference-regression.json) |
+| 자체 기초 루틴·ABI·I/O·비교 decimal 어댑터 | 26,123 | [report](../evidence/runtime/runtime-unit.json) |
+| 코어 경계·오브젝트·백엔드 비교 | 716 | [report](../evidence/runtime/runtime-boundary.json) |
+| 자체 decimal 변환·독립 oracle·ABI | 106,439 | [report](../evidence/l3/decimal-exact.json) |
+| 전체 L3 앱 통합·입출력·무라이브러리 실행 | 71 | [report](../evidence/l3/l3-core.json) |
+| **릴리스 합계** | **177,833** | [summary](../evidence/release-summary.json) |
+| 별도 native/runtime/L3 guard | **6 / 9 / 9** | [6](../evidence/native/gate-guards.json) · [9](../evidence/runtime/runtime-gate-guards.json) · [9](../evidence/l3/l3-gate-guards.json) |
 
-Native Gate 30,074 + Runtime Gate 41,245다. 기존 14,410 corpus를 세 개의 빌드에서 반복하며, 자체 루틴 호출마다 ABI assertions도 센다. 전체 수는 서로 독립된 수식·테스트 입력의 개수가 아니다. guard 내부에서 일부 검사를 다시 실행하는 횟수는 합계에 또 더하지 않았다.
+Native 30,074 + Runtime 41,249 + L3 106,510이다. 같은 14,410 회귀 corpus를 세 빌드에서 실행하며 함수 호출마다 ABI assertions를 포함한다. **177,833개의 서로 다른 수식을 검사했다는 뜻이 아니다.** guard와 압축 해제 후 재검사 횟수는 릴리스 합계에 중복 합산하지 않는다.
 
-빌드 성공, 기능 시험 통과, 무의존 smoke 성공, 전체 L3 완료를 서로 구분한다. **전체 ASMlab은 여전히 Level 2**이고 독립 smoke에는 수식 평가기가 없다.
+[실제 빌드·검사 로그](../evidence/build-test.log) · [guard 로그](../evidence/guard-tests.log) · [환경 기록](../evidence/native/environment.txt)
 
-## 2. 실제 빌드와 출처
+## 2. 전체 앱의 외부 런타임 제거
 
-세 앱 산출물은 동일한 NASM 수식 코어와 libc I/O 어댑터를 링크한다. 기본 release/debug는 자체 `src/rt/primitives.asm`, 비교 빌드는 개발용 libc primitives를 사용한다. release는 `-Ox`, debug는 `-O0 -g -F dwarf`로 빌드했다. libc는 여전히 콘솔·파일·decimal과 CRT 경로에 존재한다.
+기본 `bin/asmlab`과 `bin/asmlab-debug`는 11개의 프로젝트 NASM 오브젝트를 직접 GNU ld로 정적 링크한다. `_start`, 수식 파서·평가기, 기존 수학·행렬 커널, decimal 변환, Reader/Writer, 화면·재생을 모두 포함한다. smoke에 한정된 무의존 결과가 아니다.
 
-독립 smoke는 자체 start/smoke/primitives/integer/fd_io/syscalls 오브젝트를 GNU ld로 연결했다. 테스트용 공유 fixture를 앱에 연결하지 않았으며 smoke에는 가짜 syscall provider가 없다. NASM은 첨부된 서드파티 사전 빌드 2.16.03을 해시 재확인 후 사용했다. [도구 출처](TOOLCHAIN-PROVENANCE.md)
+다음을 실제로 검사했다.
 
-[실제 명령 로그](../evidence/build-test.log) · [실행 환경](../evidence/native/environment.txt) · [기본 release 출처](../bin/asmlab.build.json) · [debug 출처](../bin/asmlab-debug.build.json) · [비교 빌드 출처](../bin/asmlab-libc-reference.build.json) · [foundation 출처](../bin/runtime-foundation.build.json)
+- `PT_INTERP` 없음, `DT_NEEDED` 없음, 미해결 심볼 없음.
+- libc·CRT·libm·BLAS·LAPACK·compiler-rt 입력 없음. 정확한 링크 명령과 프로젝트 오브젝트 목록을 대조한다.
+- 실행 스택 없음, RWX LOAD 없음. non-PIE 정적 ELF이며 이를 ASLR 보안 개선으로 설명하지 않는다.
+- 실행 중 `/proc/<pid>/maps`의 파일 기반 매핑에는 해당 앱 파일만 존재한다. 커널 제공 `[vdso]`, `[vvar]`, 스택 등은 사용자 라이브러리 의존성으로 세지 않는다.
+- 자체 decimal·입출력 모듈이 실제 앱에 연결되며 시험 fixture/가짜 syscall provider는 생산 앱에 연결되지 않는다.
 
-모든 빌드 입력·오브젝트·링크 맵·실행 파일 SHA256을 기록한다. 소스 경로가 이동해도 파일 내용과 상대 경로로 검사할 수 있도록 했다. 기록의 원래 도구 절대 경로가 사용자 장치에 있어야 `make verify`가 가능한 것은 아니다. NASM 실행은 재빌드 때 필요하다. 해시/manifest는 디지털 서명이나 공급망 보안 인증이 아니다.
+[ELF 감사](../evidence/l3/elf-runtime-audit.txt) · [실행 매핑·통합 증거](../evidence/l3/l3-core.json) · [release 입력/오브젝트 해시](../bin/asmlab.build.json) · [debug 해시](../bin/asmlab-debug.build.json)
 
-## 3. 기존 수치·관찰 동작 보존
+### 빈 루트 파일시스템에서 실제 실행
 
-기존 회귀 스크립트 `tests/verify.py`를 유지했다. 수학 함수 비교는 Python 표준 math를 기준으로 하며 MPFR 고정밀 oracle가 아니다. 함수별 정의역과 오차 계약은 [NUMERICS.md](NUMERICS.md)를 따른다.
+권한을 가진 시험 호스트가 `chroot` 후 그룹을 비우고 GID/UID 65534로 낮췄다. 루트에는 `/asmlab`과 `/script.asmlab`만 복사했으며 **동적 로더·라이브러리·셸은 없다.** release/debug 각각 수식 인수, stdin 파이프, 스크립트 실행 3건을 성공했다. 이번 릴리스에서는 해당 시험이 skipped되지 않았다.
 
-Native Gate는 기존 50개 64비트 상수 값, 선택한 SSE2 12종의 명령 바이트·실제 캡처 위치·XMM 값·MXCSR와 release/debug의 결과를 확인한다. Runtime boundary 검사에서는 기본 release/debug/개발 reference 사이 639개 JSON 결과 레코드 및 백엔드당 74개 trace frame의 상태를 비교했다. 명령 주소는 서로 다른 링크 배치에 따라 다를 수 있어 정규화하고, 각 실행 파일의 실제 주소 검사는 별도 Native Gate로 유지한다.
+이것은 사용자 공간 의존성을 확인한 시험이며, 네트워크 서비스의 보안 sandbox를 구현·인증했다는 뜻이 아니다. 실제 Linux 커널과 상속된 표준 파일 디스크립터는 사용한다.
 
-v0.1.1 원본과의 보조 비교에서는 결과 레코드 520개와 다섯 수식의 trace 상태가 일치했다. `src/math.asm`/`src/kernels.asm`은 바이트 단위로 동일하다. 이 추가 비교는 원래 ZIP을 사용한 별도 기록으로, 표준 릴리스 합계에는 더하지 않았다. [기준 버전 비교](../evidence/native/baseline-v011-comparison.json)
+## 3. 정확 decimal 변환 시험
 
-## 4. 자체 루틴 시험
+런타임의 구현은 NASM 정수·다중 워드 정수 연산이다. Python/Decimal/Fraction은 독립 기준을 만드는 개발 시험 호스트에만 사용한다.
 
-| 분류 | 다룬 경계 |
-|---|---|
-| 메모리 | 겹침 양방향·자기 복사·길이 0·정렬되지 않은 span·앞뒤 canary |
-| 문자열 | NUL 위치·최대 길이·unsigned byte 비교·읽기 상한 |
-| 정수 포매터 | 부호 없는 최대값·INT64_MIN·16자리 hex·모든 시험 용량·실패 시 무변경 |
-| 정수 파서 | 정확 범위·overflow·부호·빈 입력·잘못된 문자·부분 파싱 거부 |
-| ABI | RBX/RBP/R12–R15, DF, MXCSR 보존과 함수 반환 |
-| 실제 I/O | 파일·바이너리 파이프·NUL·무개행 EOF·openat 네 번째 인수·PTY ioctl |
-| 실패 주입 | partial write, EINTR, EAGAIN, 진행 없음, read 오류, flush 일부 실패·sticky error |
-| 보호 페이지 | PROT_NONE 경계에 배치한 12개 별도 프로세스 검사 |
-| smoke | 옵션·정수·echo/cat·파일 오류·닫힌 fd·/dev/full·SIGPIPE |
+| 독립 입력군 | 수 |
+|---|---:|
+| 유효 decimal → binary64 | 10,095 |
+| 잘못된 decimal 거부 | 24 |
+| raw binary64 → 지정 유효숫자 문자열 | 14,143 |
+| 포매터 출력의 raw bit 왕복 확인 | 14,143 |
 
-독립 시험 26,123개 중 17,079개는 호출별 ABI assertion이다. ABI 보존은 실제 NASM 호출을 probe가 감싸서 검사한다. fault provider가 Python callback으로 진입하는 경로에서는 Python 내부의 MXCSR 보존을 요구하지 않고 GPR/DF 등을 분리해서 검사한다. 실제 own-native 경로의 MXCSR 검사는 유지한다.
+파싱 결과는 **인접 binary64 사이의 정확한 유리수 midpoint 구간과 ties-to-even**을 기준으로 비교한다. Python `float(s)`가 단지 같은 결과를 냈다는 사실에만 의존하지 않는다. 출력은 충분한 Decimal 정밀도에서 정확하게 양자화한 값과 비교하고, Python의 문자열 형식도 별도로 교차 확인한다. 왕복만 검사하면 두 구현이 같은 버그를 공유할 수 있으므로 각 방향의 독립 기준 시험을 유지한다.
 
-보호 페이지와 가짜 syscall은 시험 호스트에서만 설정한다. 실제 앱·smoke에 Python·C 시험 함수를 넣지 않았다. 공유 fixture는 ctypes로 검사할 수 있게 만든 도구이며 앱의 동적 플러그인이 아니다.
+정상·부분정규수·±0·최대 유한값·overflow/underflow 경계·극단 지수·반올림 경계·1~17 유효숫자·버퍼 부족 시 무변경·3개 보호 페이지 프로세스 시험·ABI/MXCSR 보존을 포함한다. 입력은 기존 숫자 토큰 상한 127바이트를 늘리지 않는다.
 
-## 5. decimal 시험의 정확한 의미
+알고리즘은 지원 범위에서 nearest-even 정확 변환을 목표로 구현했지만, 유한 표본 시험이 **모든 문자열/모든 float64 비트패턴의 형식적 증명**은 아니다. `sin/cos/log`의 전체 정의역에 대한 올바른 반올림을 새로 입증했다는 뜻도 아니다. [알고리즘·용량 경계](DECIMAL-CONVERSION.md)
 
-현재 어댑터의 `strtod`를 독립 정확 유리수/정수 반올림 기준과 407개 표본에서 비교했다. 원시 binary64 bits와 end-pointer를 각각 확인한 814개 assertion이며, oracle 자체의 고정 기대 비트 7개 sanity check를 추가했다. 어댑터 수준의 긴 표본은 현재 앱의 토큰 길이를 확장하지 않는다.
+## 4. 기존 계산·관찰 계약 보존
 
-이 시험은 v0.2.0에서 **자체 float64 문자열 변환을 구현했다는 뜻이 아니다.** 전체 숫자 입력은 여전히 libc 어댑터를 사용한다. 정확한 유리수에서 nearest-even으로 반올림하는 시험 기준은 Python 개발 코드이고, 실제 수학 계산 경로에 들어가지 않는다.
+`src/math.asm`과 `src/kernels.asm`은 v0.2.0 원본과 바이트 단위로 동일하다. 기본 언어 문법, 자료구조·행렬·변수 한도, 함수 정의역, 실패한 대입의 변수/ans 보존을 유지했다. [원본 ZIP과 소스 비교](../evidence/baseline-v0.2.0/source-comparison.json)
 
-## 6. 의존성과 실패 차단
+50개 64비트 상수, 관찰 대상 SSE2 명령 12종, 실제 명령 위치·XMM 원시 비트·MXCSR를 검사한다. Runtime boundary는 639개 JSON 결과 레코드와 백엔드별 74개 trace frame을 비교한다. 추가 L3 통합 시험은 33가지 수식/표시 모드 조합에서 실제 화면 텍스트를 개발용 libc reference와 비교한다. 링크에 따른 PC 차이는 정규화하되 PC의 유효성은 별도 네이티브 검사로 확인한다.
 
-기본 앱 오브젝트는 15개의 `rt_*` 심볼만 미해결 참조한다. own primitive 오브젝트에는 외부 참조가 없다. 기본 앱 ELF에 libc 메모리·문자열 entrypoint가 나타나면 실패하도록 검사한다. libc I/O globals/functions와 CRT는 허용된 경계에 남아 있다.
+**수정한 FP 진입 계약:** 파싱 성공 뒤 실제 평가 직전에 MXCSR를 `0x1f80`으로 다시 설정한다. 숫자 문자열 변환에서 발생한 sticky flag가 수학 커널의 첫 캡처에 섞이지 않게 한다. 자체 decimal은 FP 명령을 사용하지 않으며 MXCSR를 보존한다. 개발용 libc reference에도 같은 평가 경계를 적용한다. 그러므로 v0.2.0의 일부 파싱 유래 초기 플래그와 같다고 주장하지 않는다.
 
-smoke에는 PT_INTERP, DT_NEEDED, 미해결 심볼과 CRT 입력이 없고 GNU_STACK은 실행 불가다. 독립 primitive/fault fixture도 libc를 필요로 하지 않으나 decimal-adapter fixture만 의도적으로 libc를 링크한다. [실제 오브젝트·smoke 감사](../evidence/runtime/module-audit.txt)
+[실제 벡터 캡처](../evidence/l3/sqrt-vector-trace.txt) · [0.1+0.2의 FP 경계](../evidence/l3/decimal-fp-trace.txt)
 
-새 guard는 변조된 smoke/공유 fixture/오브젝트, 달라진 내부 소스, 누락된 입력 inventory, 잘못된 모듈 그룹, 누락된 reference 출처를 거부한다. NASM을 찾지 못한 foundation 빌드는 이전 실행 파일·fixture·sidecar를 남기지 않음을 확인했다. 기본 6개와 추가 9개가 모두 통과했다. [guard 실행 로그](../evidence/guard-tests.log)
+## 5. I/O와 상태 시험
 
-이것은 악의적인 공격자가 모든 소스·검증기·메타데이터를 함께 바꾸는 경우에 대한 인증이 아니다. 해시를 포함한 일반 무결성·오래된 산출물 혼용 방지 검사다.
+자체 Reader를 REPL과 재생이 공유한다. PTY에서 수식·재생 다음/이전/종료·두 번째 수식·종료 명령을 한꺼번에 보내도 미리 읽은 입력을 잃지 않는지 검사했다. EOF 직전 무개행 줄, 4,096바이트 초과 줄의 전체 거부와 다음 줄 복구, 닫힌 stdin, 디렉터리 읽기 오류, decimal overflow 후 기존 값 보존을 확인했다.
+
+모든 짧은 실행 경로에서 최종 flush가 수행되며 `/dev/full` 쓰기 실패에서는 stderr 진단과 종료 코드 2를 확인했다. 부분 입출력/EINTR/EAGAIN/sticky error는 기존 foundation 오류 주입 시험을 다시 실행했다. **기본 SIGPIPE/SIGINT는 유지**하므로 신호에 의한 종료까지 코드 2로 변환한 것은 아니다. 프로그램 자체가 termios raw mode로 바꾸지는 않는다.
+
+명령 형식은 기존 화면에 필요한 제한된 trusted formatter이며 전체 printf 규격 구현이 아니다. 외부 사용자 문자열을 format으로 실행하지 않는다. locale·LD_PRELOAD·외부 PATH 없이 동일하게 계산되는지 확인했다.
+
+## 6. 개발용 의존성은 구분
+
+`bin/asmlab-libc-reference`, `bin/tests/decimal-adapter.so`는 비교용으로 libc에 연결한다. 나머지 production release/debug/smoke 및 자체 decimal fixture와 구분한다. Python ctypes가 시험 fixture를 로드한다는 사실은 production 앱이 Python을 필요로 한다는 뜻이 아니다. 동봉 개발용 비교 실행 파일은 glibc 2.34 이상을 요구하므로 전체 make verify는 이를 제공하는 시험 호스트에서 수행한다.
+
+NASM 2.16.03은 이전 단계에서 확보한 서드파티 사전 빌드를 해시 재확인해 사용했다. 이번에 공식 NASM 소스로 어셈블러 자체를 빌드하지 않았고 도구 파일은 ZIP에 넣지 않는다. [도구 출처](TOOLCHAIN-PROVENANCE.md)
+
+검증 sidecar, SHA256, 오브젝트 목록은 일반 무결성·오래된 산출물 혼용 방지다. 모든 소스·검증기·메타데이터를 함께 고치는 악의적 공격에 대한 전자서명/공급망 인증은 아니다. L3 guard는 숨긴 `-lc`, 잘못된 모듈 그룹, 변조한 decimal fixture/오브젝트/맵/소스, 누락된 fixture, NASM 부재에서 오래된 산출물 제거를 시험한다.
 
 ## 7. 재현
 
 ```sh
-# 제공된 바이너리, object, link map과 소스로 확인; NASM 재빌드 없음
+# 동봉 실행 파일·선택된 오브젝트/맵·소스 검사; NASM 재빌드 없음
 make verify
 make test-guards
 
-# 새 네이티브 빌드부터 확인
+# Linux x86-64에서 NASM 직접 빌드부터 전체 시험
 make clean
 make -j2 test
 make test-guards
+
+# 권한 필요. 일반 사용자 환경에서 skipped되는 빈 루트 검사를 엄격히 요구
+sudo make empty-root-test
 ```
 
-Ubuntu 계열에서 NASM/gcc/make/binutils/python3가 필요하다. Python 최소 3.10이다. `make verify`에는 Python/binutils와 동봉된 선택 build 오브젝트·맵이 필요하다. `make clean`으로 이를 제거했다면 `make test`로 다시 만든다.
+현재 환경의 실제 로그와 결과는 위 링크에 있다. 일반 사용자 시험에서 chroot 권한이 없으면 그 시험만 skipped라고 명시하며, 독립 실행으로 확인한 것처럼 결과를 확대하지 않는다.
 
-## 8. 미검증 및 미구현
+## 8. 미검증/미구현
 
-실행 검증은 Linux x86-64 컨테이너 한 환경이다. 설정한 Ubuntu 22.04/24.04 원격 CI를 실행한 것이 아니며 WSL 장비·Windows native·ARM64·Pi·다중 사용자 서버 검증은 없다. 전체 수치 정의역의 올바른 반올림 증명, 전수 메모리 안전, 퍼징 완전성, 보안 인증, 성능 우위도 주장하지 않는다.
+원격 Ubuntu 22.04/24.04 Actions는 **구성만 했고 실행하지 않았다.** 별도 WSL2/Windows/ARM64/Pi 장비·웹 서버·2D/3D 그래프는 이번 구현/실행 시험에 포함하지 않는다. 고정 16×16 구조를 동적 메모리로 바꾸거나 CAS·선형대수·고속 Compute backend를 추가하지 않았다.
 
-자체 binary64 입출력, 전체 앱 fd 통합, 전체 앱의 CRT/libc 제거, 동적 allocator/Value, reentrant API, 그래프/웹/ARM 코드는 후속 개발이다. [현재 경계](LEVEL3-CONTRACT.md)
+메모리 안전성의 완전한 증명, 외부 네트워크 공격 내성, 멀티스레드/reentrant 실행, 전체 수학 함수 correct-rounding, MATLAB/BLAS 대비 성능 우위를 주장하지 않는다. 실제 레지스터 추적은 선택 명령의 계산 후 재생이며 JIT·실시간 CPU 디버거가 아니다.
 
-`evidence/baseline-0.1.1/`와 `baseline-0.1.0/`는 과거 산출물 기록이다. 현재 테스트 성공으로 혼용하지 않는다.
+과거 evidence/baseline-* 자료는 해당 과거 버전의 기록으로 보존하며 현재 검증 합계와 혼용하지 않는다.

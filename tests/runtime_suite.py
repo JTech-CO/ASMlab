@@ -402,7 +402,7 @@ def decimal_boundary(c):
 def smoke_tests(c):
     exe=str(ROOT/'bin/asmlab-runtime-smoke')
     def run(*args,data=b'',**kw):return subprocess.run([exe,*args],input=data,capture_output=True,timeout=10,**kw)
-    r=run('--version');c.check('smoke_version',r.returncode==0 and b'0.2.0' in r.stdout and b'no libc/CRT' in r.stdout,'version')
+    r=run('--version');c.check('smoke_version',r.returncode==0 and (ROOT/'VERSION').read_text().strip().encode() in r.stdout and b'no libc/CRT' in r.stdout,'version')
     r=run();c.check('smoke_help',r.returncode==0 and b'not the math REPL' in r.stdout,'help')
     rng=random.Random(44)
     for length in [0,1,4095,4096,4097,8192,65539]:

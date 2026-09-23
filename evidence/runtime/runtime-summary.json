@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "passed",
-  "executed_at_utc": "2026-09-23T04:28:38.267938+00:00",
+  "executed_at_utc": "2026-09-23T07:50:42.465432+00:00",
   "steps": [
     {
       "name": "runtime-boundary",
@@ -22,14 +22,14 @@
     }
   ],
   "counts": {
-    "runtime-boundary": 712,
+    "runtime-boundary": 716,
     "runtime-unit": 26123,
     "libc-reference-regression": 14410
   },
   "limitations": [
-    "Standalone runtime foundation only is no-libc; full ASMlab is still Level 2.",
+    "The full native app and standalone smoke are libc-free; reference fixtures may use libc.",
     "No ARM64/server/graph implementation or hardware verification."
   ],
-  "total_assertions": 41245,
+  "total_assertions": 41249,
   "failure_count": 0
 }

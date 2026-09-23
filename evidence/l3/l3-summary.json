@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "version": "0.3.0",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "decimal-exact",
+      "exit_code": 0
+    },
+    {
+      "name": "l3-core",
+      "exit_code": 0
+    }
+  ],
+  "executed_at_utc": "2026-09-23T07:50:52.861863+00:00",
+  "counts": {
+    "decimal-exact": 106439,
+    "l3-core": 71
+  },
+  "empty_root_skipped": [],
+  "failure_count": 0,
+  "total_assertions": 106510
+}

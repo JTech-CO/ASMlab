@@ -1,5 +1,5 @@
 ; Independent fd + buffered I/O foundation. All errors are negative Linux errno.
-; These routines are NOT yet used by the full application's libc stream adapter.
+; Used by the full L3 application and independent foundation fixtures.
 %include "include/abi.inc"
 %include "include/rt/foundation.inc"
 extern rt_sys_read, rt_sys_write, rt_sys_openat, rt_sys_close

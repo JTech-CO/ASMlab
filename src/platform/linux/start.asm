@@ -1,5 +1,5 @@
-; Used ONLY by the standalone foundation smoke executable in v0.2.0.
-; The full numerical application still enters through CRT/main.
+; Used ONLY by the standalone foundation smoke executable.
+; The full L3 application has its own entry in app_start.asm.
 %include "include/abi.inc"
 extern rt_program_main, rt_sys_exit
 section .text

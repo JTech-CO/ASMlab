@@ -1,40 +1,63 @@
-python3 tools/build_native.py --profile release --nasm "/mnt/data/asmlab_toolchain/linux-x64/bin/nasm" --cc "cc"
-python3 tools/build_native.py --profile debug --nasm "/mnt/data/asmlab_toolchain/linux-x64/bin/nasm" --cc "cc"
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/asmlab.lst -o build/release/asmlab.o src/asmlab.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/asmlab.lst -o build/debug/asmlab.o src/asmlab.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-primitives.lst -o build/debug/rt-primitives.o src/rt/primitives.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-primitives.lst -o build/release/rt-primitives.o src/rt/primitives.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-libc-io.lst -o build/debug/rt-libc-io.o src/rt/adapters/libc_io.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-libc-io.lst -o build/release/rt-libc-io.o src/rt/adapters/libc_io.asm
-+ cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now,--build-id=sha1 -Wl,-Map,build/debug/asmlab.map -o bin/asmlab-debug build/debug/asmlab.o build/debug/rt-primitives.o build/debug/rt-libc-io.o
-+ cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now,--build-id=sha1 -Wl,-Map,build/release/asmlab.map -o bin/asmlab build/release/asmlab.o build/release/rt-primitives.o build/release/rt-libc-io.o
-Built bin/asmlab; SHA256 5ee5da0613c2cd4c53515b26c9083fa58fb7ad872dd963ad38d7c35feb9f48d7
-Built bin/asmlab-debug; SHA256 9d1c3753ac8df83e78cca873a61e78e95af73967fad5a5415e1c6b3756fc7249
-python3 tools/build_native.py --profile release --backend libc-reference --nasm "/mnt/data/asmlab_toolchain/linux-x64/bin/nasm" --cc "cc"
-python3 tools/build_foundation.py --nasm "/mnt/data/asmlab_toolchain/linux-x64/bin/nasm" --ld "ld" --cc "cc"
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/reference/asmlab.lst -o build/reference/asmlab.o src/asmlab.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/primitives.o src/rt/primitives.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/integer.o src/rt/integer.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fd_io.o src/rt/fd_io.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/syscalls.o src/platform/linux/syscalls.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/start.o src/platform/linux/start.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/smoke.o tests/runtime/smoke.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/probe.o tests/runtime/abi_probe.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fake_syscalls.o tests/runtime/fake_syscalls.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/libc_io.o src/rt/adapters/libc_io.asm
+rm -rf build
+rm -f bin/asmlab bin/asmlab-debug bin/asmlab-libc-reference bin/asmlab-runtime-smoke bin/asmlab-validation bin/*.build.json bin/BUILD_ORIGIN.txt
+rm -rf bin/tests
+python3 tools/build_native.py --profile release --nasm "nasm" --cc "cc" --ld "ld"
+python3 tools/build_native.py --profile debug --nasm "nasm" --cc "cc" --ld "ld"
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/asmlab.lst -o build/release/asmlab.o src/asmlab.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/asmlab.lst -o build/debug/asmlab.o src/asmlab.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-primitives.lst -o build/release/rt-primitives.o src/rt/primitives.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-primitives.lst -o build/debug/rt-primitives.o src/rt/primitives.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-integer.lst -o build/release/rt-integer.o src/rt/integer.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-integer.lst -o build/debug/rt-integer.o src/rt/integer.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-biguint.lst -o build/release/rt-biguint.o src/rt/biguint.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-biguint.lst -o build/debug/rt-biguint.o src/rt/biguint.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-decimal-parse.lst -o build/debug/rt-decimal-parse.o src/rt/decimal_parse.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-decimal-parse.lst -o build/release/rt-decimal-parse.o src/rt/decimal_parse.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-decimal-format.lst -o build/release/rt-decimal-format.o src/rt/decimal_format.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-decimal-format.lst -o build/debug/rt-decimal-format.o src/rt/decimal_format.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-fd-io.lst -o build/release/rt-fd-io.o src/rt/fd_io.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-fd-io.lst -o build/debug/rt-fd-io.o src/rt/fd_io.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-app-io.lst -o build/release/rt-app-io.o src/rt/adapters/app_io.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-app-io.lst -o build/debug/rt-app-io.o src/rt/adapters/app_io.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-console-format.lst -o build/release/rt-console-format.o src/rt/console_format.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-console-format.lst -o build/debug/rt-console-format.o src/rt/console_format.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-syscalls.lst -o build/release/rt-syscalls.o src/platform/linux/syscalls.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-syscalls.lst -o build/debug/rt-syscalls.o src/platform/linux/syscalls.asm
++ nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-app-start.lst -o build/release/rt-app-start.o src/platform/linux/app_start.asm
++ nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-app-start.lst -o build/debug/rt-app-start.o src/platform/linux/app_start.asm
++ ld -m elf_x86_64 -static --no-undefined -z noexecstack --build-id=sha1 -e _start -Map build/release/asmlab.map -o bin/asmlab build/release/asmlab.o build/release/rt-primitives.o build/release/rt-integer.o build/release/rt-biguint.o build/release/rt-decimal-parse.o build/release/rt-decimal-format.o build/release/rt-fd-io.o build/release/rt-app-io.o build/release/rt-console-format.o build/release/rt-syscalls.o build/release/rt-app-start.o
++ ld -m elf_x86_64 -static --no-undefined -z noexecstack --build-id=sha1 -e _start -Map build/debug/asmlab.map -o bin/asmlab-debug build/debug/asmlab.o build/debug/rt-primitives.o build/debug/rt-integer.o build/debug/rt-biguint.o build/debug/rt-decimal-parse.o build/debug/rt-decimal-format.o build/debug/rt-fd-io.o build/debug/rt-app-io.o build/debug/rt-console-format.o build/debug/rt-syscalls.o build/debug/rt-app-start.o
+Built bin/asmlab; SHA256 ce20954f4fb8a90255cb4d3425cff0783e595ef875db784bec329dd97e651c64
+Built bin/asmlab-debug; SHA256 9d9dc7aeaaaee28793f6c7a03d87091b07912fdd337e19ceaf8e00422390f5c5
+python3 tools/build_native.py --profile release --backend libc-reference --nasm "nasm" --cc "cc" --ld "ld"
+python3 tools/build_foundation.py --nasm "nasm" --ld "ld" --cc "cc"
++ nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/asmlab.lst -o build/reference/asmlab.o src/asmlab.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/primitives.o src/rt/primitives.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/integer.o src/rt/integer.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fd_io.o src/rt/fd_io.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/syscalls.o src/platform/linux/syscalls.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/start.o src/platform/linux/start.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/smoke.o tests/runtime/smoke.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/probe.o tests/runtime/abi_probe.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fake_syscalls.o tests/runtime/fake_syscalls.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/libc_io.o src/rt/adapters/libc_io.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/biguint.o src/rt/biguint.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/decimal_parse.o src/rt/decimal_parse.asm
++ nasm -f elf64 -Ox -w+error -I./ -o build/runtime/decimal_format.o src/rt/decimal_format.asm
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-0.map -e _start -o bin/asmlab-runtime-smoke build/runtime/start.o build/runtime/smoke.o build/runtime/primitives.o build/runtime/integer.o build/runtime/fd_io.o build/runtime/syscalls.o
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-1.map -shared -Bsymbolic -o bin/tests/runtime-primitives.so build/runtime/primitives.o build/runtime/integer.o build/runtime/fd_io.o build/runtime/syscalls.o build/runtime/probe.o
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-2.map -shared -Bsymbolic -o bin/tests/runtime-faults.so build/runtime/primitives.o build/runtime/integer.o build/runtime/fd_io.o build/runtime/fake_syscalls.o build/runtime/probe.o
 + cc -shared -Wl,-Bsymbolic,-z,noexecstack,-z,relro,-z,now,--no-undefined -Wl,-Map,build/runtime/target-3.map -o bin/tests/decimal-adapter.so build/runtime/libc_io.o build/runtime/probe.o
++ ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-4.map -shared -Bsymbolic -o bin/tests/decimal-native.so build/runtime/biguint.o build/runtime/decimal_parse.o build/runtime/decimal_format.o build/runtime/probe.o
 Built standalone foundation and development fixtures.
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/reference/rt-primitives.lst -o build/reference/rt-primitives.o dev/runtime/libc_primitives.asm
-+ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/reference/rt-libc-io.lst -o build/reference/rt-libc-io.o src/rt/adapters/libc_io.asm
++ nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-primitives.lst -o build/reference/rt-primitives.o dev/runtime/libc_primitives.asm
++ nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-libc-io.lst -o build/reference/rt-libc-io.o src/rt/adapters/libc_io.asm
 + cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now,--build-id=sha1 -Wl,-Map,build/reference/asmlab.map -o bin/asmlab-libc-reference build/reference/asmlab.o build/reference/rt-primitives.o build/reference/rt-libc-io.o
-Built bin/asmlab-libc-reference; SHA256 3243ca737a1cfcabf08fe9ecedaa731eaa378798db119eca27feb85d08d88662
+Built bin/asmlab-libc-reference; SHA256 ad00fd142b9838f32fb0c76296c961c311646eabf51413acd8ed1222a3db3ae1
 python3 tools/release_gate.py --report-dir build/evidence
 {
   "schema_version": 1,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "passed",
   "steps": [
     {
@@ -44,17 +67,23 @@ python3 tools/release_gate.py --report-dir build/evidence
     {
       "name": "runtime",
       "exit_code": 0
+    },
+    {
+      "name": "l3",
+      "exit_code": 0
     }
   ],
-  "executed_at_utc": "2026-09-23T04:28:34.843333+00:00",
+  "executed_at_utc": "2026-09-23T07:50:38.947608+00:00",
   "remote_ci_executed": false,
+  "l3_assertions": 106510,
+  "empty_root_skipped": [],
   "native_assertions": 30074,
-  "runtime_assertions": 41245,
-  "total_assertions": 71319,
+  "runtime_assertions": 41249,
+  "total_assertions": 177833,
   "failure_count": 0,
   "limitations": [
     "Counts include repeated corpus executions on different profiles/backends and ABI assertions; not unique mathematical cases.",
     "Not formal correctness, complete memory safety, high-precision math certification or cross-platform verification.",
-    "The full application still links libc/CRT. Runtime-smoke does not contain the evaluator."
+    "Full production app is libc/CRT-free; development comparison binaries/fixtures may intentionally link libc."
   ]
 }

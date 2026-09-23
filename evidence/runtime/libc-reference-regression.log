@@ -1,4 +1,4 @@
-$ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.2.0/bin/asmlab-libc-reference --report /mnt/data/ASMlab-v0.2.0/build/evidence/runtime/libc-reference-regression.json
+$ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.3.0/bin/asmlab-libc-reference --report /mnt/data/ASMlab-v0.3.0/build/evidence/runtime/libc-reference-regression.json
 {
   "case_count": 14410,
   "failure_count": 0,
@@ -30,5 +30,5 @@ $ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.2.0/bin/asmlab-lib
     "pty_replay": 4,
     "io_cli": 4
   },
-  "elapsed_seconds": 0.196
+  "elapsed_seconds": 0.189
 }

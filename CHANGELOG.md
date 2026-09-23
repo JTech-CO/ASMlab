@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.3.0 - L3-Core (2026-09-23)
+
+### Implemented
+- Full production release/debug now start at own `_start` and link directly with GNU ld. No libc/CRT/interpreter/NEEDED or external runtime helpers.
+- Exact bounded decimal-to-binary64 rational conversion with nearest-even rounding; signs, subnormal/normal boundaries, underflow and overflow handled. No `strtod` fallback.
+- Exact binary64-to-decimal significant-digit formatter (1..17); JSON/quiet17, raw-bit round-trip tests, no-write-on-capacity-failure. No `printf` numerical formatting.
+- Small `rt_console_format` for trusted view format strings, backed by own Writer, integer/float conversion and syscall I/O. It is not a full ISO printf implementation.
+- Full app input uses shared Reader contexts for REPL/replay and an owned script slot. All early/final returns flush; output/flush failure exits2. Script close errors no longer disappear.
+- Numerical evaluation explicitly resets MXCSR after parsing; decimal conversion no longer adds incidental FP flags to the first traced instruction.
+- Native exact-decimal test fixture, exact rational/Decimal oracles, guard-page/ABI tests, real process mapping and empty-root execution checks, added L3 tamper guards and CI steps.
+
+### Preserved / not included
+- `math.asm` and `kernels.asm` unchanged from v0.2.0. Existing bounded language, matrix shape limits, operators, function domains, AST/XMM capture and post-evaluation replay retained.
+- Development libc reference/adapter remains separate. Python is testing/build automation only.
+- No dynamic matrices, extra math functions, solver, new SIMD backend, API/server, ARM64/Pi port, browser UI or 2D/3D graph implementation.
+- No mathematical all-input proof, security certification or remote CI execution claimed.
+
+[Verification](docs/VERIFICATION.md) · [Runtime ABI](docs/RUNTIME-ABI.md) · [Decimal algorithms](docs/DECIMAL-CONVERSION.md)
+
+---
+
+
 ## 0.2.0 - Runtime Foundation (2026-09-23)
 
 ### Implemented

@@ -32,7 +32,7 @@ def main():
           validate_app('asmlab-libc-reference','release','libc-reference')]
     foundation=validate_foundation()
     c.check('provenance',True,'all artifacts/input inventories validated before execution')
-    rt_imports={'rt_console_printf','rt_console_puts','rt_decimal_from_cstr','rt_input_close',
+    rt_imports={'rt_console_format','rt_console_puts','rt_decimal_from_cstr','rt_input_close',
                 'rt_input_error','rt_input_getc','rt_input_gets','rt_input_open_read','rt_input_stdin',
                 'rt_is_tty','rt_memcpy','rt_memset','rt_output_flush','rt_strcmp','rt_strlen'}
     core_paths=list((ROOT/'src').glob('*.asm'))+list((ROOT/'include').glob('*.inc'))+[ROOT/'include/rt/api.inc']
@@ -50,7 +50,7 @@ def main():
         c.check('app_object_imports',undefined(ROOT/objects[0]['path'])==rt_imports,name)
         imports=undefined(ROOT/objects[1]['path'])
         c.check('primitive_object_imports',imports==primitive_names if is_reference else not imports,name)
-        imported=undefined(ROOT/name,True)
+        imported=undefined(ROOT/name,is_reference)
         c.check('dynamic_primitive_boundary',primitive_names<=imported if is_reference else not primitive_names & imported,name)
         c.check('no_fixture_linkage',not any('tests/' in o['source'] for o in objects),name)
     for i,target in enumerate(foundation['targets']):
@@ -59,7 +59,7 @@ def main():
         needed=re.findall(r'\(NEEDED\).*?\[(.*?)\]',dynamic)
         c.check('foundation_dependencies',needed==(['libc.so.6'] if i==3 else []),target['path']+str(needed))
         c.check('foundation_nx',bool(re.search(r'GNU_STACK.*\bRW\b',programs)) and not re.search(r'LOAD.*RWE',programs),target['path'])
-        if i<3:c.check('foundation_no_undefined',not undefined(path),target['path'])
+        if i!=3:c.check('foundation_no_undefined',not undefined(path),target['path'])
         if i==0:
             hdr=command('readelf','-hW',path);symbols=command('nm',path)
             c.check('standalone_entry',bool(re.search(r'\bT _start$',symbols,re.M)) and 'EXEC' in hdr,target['path'])

@@ -1,0 +1,112 @@
+$ readelf -lW bin/asmlab
+
+Elf file type is EXEC (Executable file)
+Entry point 0x4057e0
+There are 6 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000400000 0x0000000000400000 0x0001b4 0x0001b4 R   0x1000
+  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x004815 0x004815 R E 0x1000
+  LOAD           0x006000 0x0000000000406000 0x0000000000406000 0x001610 0x001610 R   0x1000
+  LOAD           0x000000 0x0000000000408000 0x0000000000408000 0x000000 0x1f7e98 RW  0x1000
+  NOTE           0x000190 0x0000000000400190 0x0000000000400190 0x000024 0x000024 R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.build-id 
+   01     .text 
+   02     .rodata 
+   03     .bss 
+   04     .note.gnu.build-id 
+   05     
+
+$ readelf -dW bin/asmlab
+
+There is no dynamic section in this file.
+
+$ nm -u bin/asmlab
+
+$ sh tests/audit.sh bin/asmlab
+
+Elf file type is EXEC (Executable file)
+Entry point 0x4057e0
+There are 6 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000400000 0x0000000000400000 0x0001b4 0x0001b4 R   0x1000
+  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x004815 0x004815 R E 0x1000
+  LOAD           0x006000 0x0000000000406000 0x0000000000406000 0x001610 0x001610 R   0x1000
+  LOAD           0x000000 0x0000000000408000 0x0000000000408000 0x000000 0x1f7e98 RW  0x1000
+  NOTE           0x000190 0x0000000000400190 0x0000000000400190 0x000024 0x000024 R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.build-id 
+   01     .text 
+   02     .rodata 
+   03     .bss 
+   04     .note.gnu.build-id 
+   05     
+PASS: L3-Core ELF64 x86-64 EXEC; own _start; no interpreter/NEEDED/undefined symbols; NX stack; no RWX LOAD; own decimal; SSE2.
+No dynamic linker means RELRO/NOW checks are inapplicable, not a general security certification. Non-PIE.
+
+$ readelf -lW bin/asmlab-debug
+
+Elf file type is EXEC (Executable file)
+Entry point 0x405d00
+There are 6 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000400000 0x0000000000400000 0x0001b4 0x0001b4 R   0x1000
+  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x004d38 0x004d38 R E 0x1000
+  LOAD           0x006000 0x0000000000406000 0x0000000000406000 0x001610 0x001610 R   0x1000
+  LOAD           0x000000 0x0000000000408000 0x0000000000408000 0x000000 0x1f7e98 RW  0x1000
+  NOTE           0x000190 0x0000000000400190 0x0000000000400190 0x000024 0x000024 R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.build-id 
+   01     .text 
+   02     .rodata 
+   03     .bss 
+   04     .note.gnu.build-id 
+   05     
+
+$ readelf -dW bin/asmlab-debug
+
+There is no dynamic section in this file.
+
+$ nm -u bin/asmlab-debug
+
+$ sh tests/audit.sh bin/asmlab-debug
+
+Elf file type is EXEC (Executable file)
+Entry point 0x405d00
+There are 6 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000400000 0x0000000000400000 0x0001b4 0x0001b4 R   0x1000
+  LOAD           0x001000 0x0000000000401000 0x0000000000401000 0x004d38 0x004d38 R E 0x1000
+  LOAD           0x006000 0x0000000000406000 0x0000000000406000 0x001610 0x001610 R   0x1000
+  LOAD           0x000000 0x0000000000408000 0x0000000000408000 0x000000 0x1f7e98 RW  0x1000
+  NOTE           0x000190 0x0000000000400190 0x0000000000400190 0x000024 0x000024 R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .note.gnu.build-id 
+   01     .text 
+   02     .rodata 
+   03     .bss 
+   04     .note.gnu.build-id 
+   05     
+PASS: L3-Core ELF64 x86-64 EXEC; own _start; no interpreter/NEEDED/undefined symbols; NX stack; no RWX LOAD; own decimal; SSE2.
+No dynamic linker means RELRO/NOW checks are inapplicable, not a general security certification. Non-PIE.
+

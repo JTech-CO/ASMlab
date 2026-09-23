@@ -2,7 +2,11 @@ section .rodata
 usage: db 'Usage: asmlab [--quiet|--json] [--all] [--bits] [--step]',10
        db '              [--color|--no-color] [-e EXPRESSION | -f FILE]',10
        db '       asmlab --help | --version',10
-       db 'Runtime: Linux x86-64 / WSL2; libc I/O/decimal adapter; own memory/string primitives.',10
+%ifdef ASMLAB_LIBC_REFERENCE
+       db 'Runtime: development-only libc/CRT comparison backend; NOT L3-Core.',10
+%else
+       db 'Runtime: Linux x86-64 / WSL2; L3-Core; own runtime; no libc or CRT.',10
+%endif
        db 'All math, parser, evaluator, tracing, and terminal UI are NASM assembly.',0
 help_text: db 'EXPRESSIONS',10
        db '  x = 2^3 + 1                  float64 scalars; pi, e, and ans',10
@@ -231,7 +235,7 @@ main:
     jne .read
     lea rdi, [prompt]
     xor eax, eax
-    call rt_console_printf
+    call rt_console_format
     xor edi, edi
     call rt_output_flush
 .read:
@@ -270,6 +274,9 @@ main:
     je .return
     mov rdi, [input_stream]
     call rt_input_close
+    test eax, eax
+    jz .return
+    mov qword [exit_status], 2
 .return:
     mov eax, [exit_status]
     DONE
@@ -367,6 +374,8 @@ process_line:
     test rax, rax
     jz .empty
     mov [root_node], rax
+    ; Numerical trace starts clean, independent of decimal/parser side effects.
+    ldmxcsr [mxcsr_default]
     mov rdi, rax
     call eval_node
     cmp qword [err_msg], 0

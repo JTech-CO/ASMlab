@@ -1,0 +1,34 @@
+{
+  "case_count": 106439,
+  "group_counts": {
+    "parse_abi": 10119,
+    "parse_exact_interval": 10095,
+    "parse_rejection": 24,
+    "format_abi": 14806,
+    "format_spelling": 14143,
+    "format_exact_quantization": 14143,
+    "roundtrip_abi": 28286,
+    "roundtrip_bits": 14143,
+    "format_buffer_boundary": 663,
+    "abi": 7,
+    "format_precision_error": 3,
+    "trace_nonfinite_display": 4,
+    "decimal_guard_pages": 3
+  },
+  "failure_count": 0,
+  "failures": [],
+  "schema_version": 1,
+  "version": "0.3.0",
+  "independent_cases": {
+    "parse_cases": 10095,
+    "format_cases": 14143,
+    "roundtrip_cases": 14143
+  },
+  "elapsed_seconds": 1.081,
+  "oracle": "Exact rational neighboring-binary64 midpoint intervals; Decimal exact quantization; Python spelling cross-check.",
+  "limitations": [
+    "Finite corpus, not an exhaustive proof over all decimal inputs or all binary64 patterns.",
+    "Integer reference algorithm targets correct nearest-even rounding; no libm correct-rounding claim.",
+    "ctypes/Decimal/Fraction and protected-page setup belong to the test host only."
+  ]
+}

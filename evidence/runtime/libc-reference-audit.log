@@ -1,4 +1,4 @@
-$ sh tests/audit.sh /mnt/data/ASMlab-v0.2.0/bin/asmlab-libc-reference reference
+$ sh tests/audit.sh /mnt/data/ASMlab-v0.3.0/bin/asmlab-libc-reference reference
  0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
                  w __gmon_start__
                  U __libc_start_main@GLIBC_2.34

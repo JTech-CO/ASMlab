@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "passed",
   "steps": [
     {
@@ -10,36 +10,46 @@
     {
       "name": "runtime",
       "exit_code": 0
+    },
+    {
+      "name": "l3",
+      "exit_code": 0
     }
   ],
-  "executed_at_utc": "2026-09-23T04:28:34.843333+00:00",
+  "executed_at_utc": "2026-09-23T07:50:38.947608+00:00",
   "remote_ci_executed": false,
+  "l3_assertions": 106510,
+  "empty_root_skipped": [],
   "native_assertions": 30074,
-  "runtime_assertions": 41245,
-  "total_assertions": 71319,
+  "runtime_assertions": 41249,
+  "total_assertions": 177833,
   "failure_count": 0,
   "test_sources_sha256": {
+    "tests/decimal_exact.py": "0df661dc34bb3629c18ccb0537eece73c3fee7a39eff850cf93f297048046d84",
     "tests/elf64.py": "7a4fcacef76cd04fb5a241ebd4b27a4ea07087b4e43bbc958eb744bb9e9d0170",
     "tests/gate_guards.py": "bc7ebc139559b334d84615100b2f6f2b1339aeb1c5b92e654017c0eb0d4ebfc4",
+    "tests/l3_core.py": "91ab3ea7b51a5f72d8dce7ae64e2ca6d2f85ba730c705012cc2a1c47ad2b2b74",
+    "tests/l3_guards.py": "39552f2ad1ba48c4f8cc100cb41d9c678725778b93432feb4a8541651fe03f64",
     "tests/native_contract.py": "f9eed2321331bcd27241ea9f94ad0a796e774275e5a80875b98f5af934bbb40a",
     "tests/runtime/abi_probe.asm": "92d2a0396909071dfb45a2282cd582fb999c023971fe32b347bd42fe6ee4ac0c",
     "tests/runtime/fake_syscalls.asm": "863c74e5bf29b62946921ef835e85e00a3190e21225531f3a0be193ea096c002",
-    "tests/runtime/smoke.asm": "b71ace7d54c318eeec3cf09a65ea745b94b7e66c1cb1a962af57821e97ef7692",
-    "tests/runtime_boundary.py": "7f1c20abd98a6d36c01149fcf1c2ee8e33e76cb63a1dd4a4323b91a7cfe18aa1",
+    "tests/runtime/smoke.asm": "e222b2a3f997a84811465d30d7e696c27fe6fc41c08b07ab07b2d2d6e7ba7c29",
+    "tests/runtime_boundary.py": "774254a29e689646b9ddffae97dd5e429a1d82ea5908475460149ef5556f7832",
     "tests/runtime_gate_guards.py": "75335ec2eb09f1f9c433055310b62c1a11b160d28d57e78c304d402d305ec2b4",
-    "tests/runtime_suite.py": "00e42f91042d660dcf73906955030ebafeb39aa7c4f61fdaa04822e26998cdb2",
+    "tests/runtime_suite.py": "cb5809ee0d06e370a03b1d1ed8a3e4579bf1eb217817ea134d67b0197b9369dd",
     "tests/verify.py": "1818494e4d83ef3b19faf0b6fd80e77b23550907c27d141a4baf8a56fc6de00b",
-    "tools/build_foundation.py": "4b9409c9a5af13392866e3927fcf70e6fae5ec62b4e1461f0fcb59c565c6d993",
-    "tools/build_native.py": "100f4e4470526a2eaa35e8bf51fd0725b435ac244bac4cf21b8f7d7b0fc05e2b",
-    "tools/check_provenance.py": "9f42f1cd2feba6459a4472905a93772659cfa071a35381a9b320281933fd4227",
-    "tools/native_gate.py": "7ba808b8ce6e2b2d7dd0b8b588cd025fadf55ab65dfd227703c1bda1828245b9",
-    "tools/release_gate.py": "66e31af1679f4b1dff30acf994417b9aebbbeb80ad8f0facff15850fd036eaaf",
-    "tools/runtime_gate.py": "888833e84f70ab4607b4d4309267a4a9081400ccad015d2eb4bf56ce3f205e69",
+    "tools/build_foundation.py": "f9ed12ea54caeb79eda1abfc2efdfee00af8fe5f44818f13b1537aa300f48ef6",
+    "tools/build_native.py": "a5811db0871209c399a6452d18d8e9fe76fddaef75d14219df79f67579094fdd",
+    "tools/check_provenance.py": "257f12d43a52dc1af52994b3c49e2d5915a46e1b81b3244d210ea70260795efe",
+    "tools/l3_gate.py": "5ebc72c5cfb99fd2fc92504a968cf72cc31257952682f45de337ca19e4b3fe1e",
+    "tools/native_gate.py": "0d1d75d9d75c79fc13fc8243d85cf2407456bef3110bf2ff25280a9acda04613",
+    "tools/release_gate.py": "ee57d64621a247708a728b476d7defb5cc965d6afffb1172b2ef1c2e516e18d5",
+    "tools/runtime_gate.py": "bca5bbce275e5b9a116651532d2e6dc6a5ba91fca48cab346a88c581cc062e0b",
     "tools/validation_bridge.py": "564e80d5080698b2eeaf5bc2b3e1b9219b980238ecd92fa09ddc3a666059bf47"
   },
   "limitations": [
     "Counts include repeated corpus executions on different profiles/backends and ABI assertions; not unique mathematical cases.",
     "Not formal correctness, complete memory safety, high-precision math certification or cross-platform verification.",
-    "The full application still links libc/CRT. Runtime-smoke does not contain the evaluator."
+    "Full production app is libc/CRT-free; development comparison binaries/fixtures may intentionally link libc."
   ]
 }

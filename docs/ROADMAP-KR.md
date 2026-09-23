@@ -1,32 +1,20 @@
-# ASMlab 개발 로드맵
+# ASMlab 로드맵 - v0.3.0 기준
 
-기준: v0.2.0 / 2026-09-23. 버전은 범위와 완료 조건을 구분하며 일정 약속이 아니다.
+Level 구분은 이 프로젝트의 개발 범위이며 외부 인증이 아니다.
 
-| 버전 | 상태 | 범위 |
+| 단계 | 상태 | 범위 |
 |---|---|---|
-| v0.1.1 | 완료, 역사적 기준선 | NASM release/debug 직접 빌드, 기존 회귀와 추적·상수 감사 |
-| v0.2.0 | **완료** | 런타임 호출 경계, 자체 기본 루틴, libc 비교 백엔드, 독립 syscall/정수/버퍼 I/O 시험 |
-| v0.3.0 | 미구현 | 자체 float64 입출력, fd 계층의 전체 앱 통합, 자체 시작 경로로 CRT/libc 제거, L3-Core 감사 |
-| v0.4.0 | 미구현 | 동적 Value·메모리 quota·소유권·실패한 대입의 원자성 |
-| v0.5.0 | 미구현 | trace v2, Observe/Compute 분리, 패널 작업환경 |
-| v0.6.0 이후 | 미구현 | 수학 정확도·정의역 강화, LU/solve/QR/Cholesky, 저장과 선택적 최적화 |
+| v0.1.1 Native Gate | 완료·이전 단계 | NASM 직접 빌드, 상수/명령/회귀 검증 |
+| v0.2.0 Runtime Foundation | 완료·이전 단계 | 호출 경계, 자체 기본 루틴, 독립 시험 |
+| **v0.3.0 L3-Core** | **구현·로컬 검증 완료** | 정확한 decimal 입출력, 앱 I/O·진입 통합, libc/CRT 제거 |
+| v0.4.0 Dynamic Workspace | 미구현 | 동적 Value·arena·quota·소유권·실패 시 롤백 |
+| v0.5.0 Observable Workbench | 미구현 | trace v2, 관찰/계산 경로, 패널 개선 |
+| v0.6.0 Numerical Foundation+ | 미구현 | 함수 정확도·정의역 강화, 안정적 벡터 계산 |
+| v0.7.0 Linear Solve | 미구현 | 피벗 LU·solve·잔차·조건 진단 |
+| v0.8.0 Factorization | 미구현 | QR·Cholesky·제한된 최소제곱 |
+| v0.9.0 성능·저장 | 미구현 | 계산 커널, 선택적 SIMD, workspace·trace 저장 |
+| v1.0.0 L3-Workbench | 미구현 | 통합 작업환경과 배포 검증 |
 
-## v0.2.0의 완료 조건과 경계
+현재 수학·행렬 기능을 넓히지 않고 독립 런타임의 완료 조건을 먼저 충족했다. v0.4.0에서 단순히 `DIM_CAP`만 키우지 않고 자료구조·소유권·메모리 상한부터 설계한다.
 
-핵심은 libc 호출 이름만 바꾸는 데 그치지 않는 것이다. 기본 앱에는 자체 메모리·문자열 루틴을 연결하고, 외부 I/O·decimal 의존성을 별도 오브젝트에 격리했다. 같은 코어를 libc primitive 비교 백엔드로 빌드해 결과·추적을 비교했다. 자체 `_start`/syscall/정수/Reader/Writer는 libc 없는 별도 smoke와 보호 페이지·오류 주입 시험으로 검증했다.
-
-**전체 앱의 libc·CRT·strtod·printf 제거는 완료 조건이 아니며 아직 남아 있다.** smoke를 완성된 L3 앱으로 설명하지 않는다. [범위 명세](RUNTIME-FOUNDATION-KR.md)
-
-## v0.3.0에서 먼저 할 일
-
-1. 정수 보조 기반의 정확한 decimal↔binary64 기준 구현과 독립 반올림 시험을 구성한다.
-2. typed float 출력과 오류 보고를 붙이고 임시 printf 호환 경계를 제거한다.
-3. 스크립트/REPL/재생이 동일한 fd reader 상태를 안전하게 사용하도록 통합한다.
-4. 자체 `_start`로 전체 앱을 연결한 후 모든 회귀·입출력 실패·수치·실제 캡처를 검증한다.
-5. 전체 실행 파일의 동적·정적 런타임 의존성을 오브젝트 출처까지 감사한다.
-
-## 라즈베리파이·웹·2D/3D 그래프
-
-[별도 기획](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)을 보존한다. 현재 x86-64 NASM 코어를 먼저 안정화하고, 실제 Pi 이전은 ARM64 포팅 또는 x86 계산 서버 분리를 결정한 뒤 시작한다. 이번 버전에는 ARM 명령, 웹 API, 브라우저 UI, 그래프 코드나 배포 설정이 없다.
-
-[원래 상세 WBS](plans/LEVEL3-PLAN-KR.md)는 최초 계획 기록이다. 현재 완료 여부는 이 로드맵과 각 릴리스 검증 보고서를 기준으로 확인한다.
+라즈베리파이5 16GB의 ARM64 포팅, 서버형 웹사이트, 브라우저 2D/3D 그래프는 [별도 기획](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)만 유지한다. 실행 아키텍처 선택과 승인 없이 NASM 코어를 ARM/웹 구현으로 대체하지 않는다. [원래 상세 Level 3 계획](plans/LEVEL3-PLAN-KR.md)은 당시 계획으로 보존한다.

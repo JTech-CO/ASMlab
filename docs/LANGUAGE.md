@@ -1,4 +1,4 @@
-# ASMlab 0.2.0 language reference
+# ASMlab 0.3.0 language reference
 
 ## Data model
 
@@ -19,7 +19,7 @@ postfix    := expression "'"
 binary     := expression ('+'|'-'|'*'|'/'|'.*'|'./'|'^') expression
 ```
 
-The implementation is a Pratt parser, not the directly left-recursive grammar above. Decimal tokens support `1`, `1.`, `.5`, `1.25e-3`, and `2E+5`. Hexadecimal floating literals, `Inf`, `NaN`, underscores in numbers, and implicit multiplication are not supported. `strtod` is called only after a token is scanned and copied into a bounded buffer. Decimal overflow is rejected; decimal underflow can round to a subnormal or zero.
+The implementation is a Pratt parser, not the directly left-recursive grammar above. Decimal tokens support `1`, `1.`, `.5`, `1.25e-3`, and `2E+5`. Hexadecimal floating literals, `Inf`, `NaN`, underscores in numbers, and implicit multiplication are not supported. The native `rt_decimal_from_cstr` wrapper invokes the own exact integer-rational parser after a token is scanned and copied into a bounded buffer. No `strtod` is linked into the native app. Decimal overflow is rejected; decimal underflow can round to a subnormal or zero.
 
 Binding power from low to high: addition/subtraction 10; multiplication/division 20; unary signs 25; exponentiation 30; transpose 40. Exponentiation is right-associative. Thus `-2^2=-4`, `(-2)^2=4`, `2^-2=0.25`, and `2^3^2=512`.
 

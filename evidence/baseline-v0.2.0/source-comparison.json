@@ -1,0 +1,18 @@
+{
+  "baseline_zip_sha256": "b5113d37443105c6c822f35c1380ca39e75b2dd6efeef79dfdfcaf00ac6dd65f",
+  "files": [
+    {
+      "path": "src/math.asm",
+      "before_sha256": "6a5c4b91aad5ce00a805a29b8b4fc7bd3287239cd831440e5b4133c78066c470",
+      "after_sha256": "6a5c4b91aad5ce00a805a29b8b4fc7bd3287239cd831440e5b4133c78066c470",
+      "identical": true
+    },
+    {
+      "path": "src/kernels.asm",
+      "before_sha256": "e8f89252dcd76c5845eeed9a4672597025a4f8415ec964c732b4ce46d0052c8f",
+      "after_sha256": "e8f89252dcd76c5845eeed9a4672597025a4f8415ec964c732b4ce46d0052c8f",
+      "identical": true
+    }
+  ],
+  "scope": "Only math/kernel source preservation; other runtime/build files intentionally changed."
+}

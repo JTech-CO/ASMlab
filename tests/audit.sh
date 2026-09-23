@@ -1,46 +1,28 @@
 #!/bin/sh
-# Native Gate runtime audit: this is Level 2, NOT an external-runtime-free ELF.
+# L3-Core ELF audit. Link-input manifests are checked separately before this.
 set -eu
 binary=${1:-./bin/asmlab}
-mode=${2:-native}
-[ -f "$binary" ] || { echo "Missing executable: $binary" >&2; exit 1; }
-header=$(LC_ALL=C readelf -hW "$binary")
-printf '%s\n' "$header" | grep -q 'Class:.*ELF64' || exit 1
-printf '%s\n' "$header" | grep -q 'Machine:.*X86-64' || exit 1
-printf '%s\n' "$header" | grep -q 'Type:.*EXEC' || exit 1
-needed=$(LC_ALL=C readelf -dW "$binary" | grep '(NEEDED)' || true)
-printf '%s\n' "$needed"
-count=$(printf '%s\n' "$needed" | grep -c '(NEEDED)' || true)
-[ "$count" -eq 1 ] && printf '%s\n' "$needed" | grep -q '\[libc.so.6\]' || {
-  echo 'FAIL: expected libc.so.6 as the only shared dependency' >&2; exit 1;
-}
-imports=$(LC_ALL=C nm -D --undefined-only "$binary")
-printf '%s\n' "$imports"
-# An explicit allowlist catches hidden helper/math/process/network imports.
-names=$(printf '%s\n' "$imports" | awk '{print $NF}' | sed 's/@.*//')
-for name in $names; do
-  case "$name" in
-    __gmon_start__|__libc_start_main|__cxa_finalize|_ITM_deregisterTMCloneTable|_ITM_registerTMCloneTable|fclose|ferror|fflush|fgetc|fgets|fopen|isatty|memcpy|memmove|memset|memcmp|strnlen|printf|puts|strcmp|strlen|strtod|stdin) ;;
-    *) echo "FAIL: unexpected dynamic function import: $name" >&2; exit 1;;
-  esac
-done
-if [ "$mode" = native ]; then
-  for name in $names; do
-    case "$name" in
-      memcpy|memmove|memset|memcmp|strlen|strnlen|strcmp) echo "FAIL: default native runtime imports $name" >&2; exit 1;;
-    esac
-  done
+if [ "${2:-native}" = reference ]; then
+  exec sh "$(dirname "$0")/audit_reference.sh" "$binary" reference
 fi
-# v0.2.0 stdin is referenced through the adapter's GOT, not a core global.
-LC_ALL=C readelf -rW "$binary" | grep 'COPY' || true
+header=$(LC_ALL=C readelf -hW "$binary")
+printf '%s\n' "$header" | grep -q 'Class:.*ELF64'
+printf '%s\n' "$header" | grep -q 'Machine:.*X86-64'
+printf '%s\n' "$header" | grep -q 'Type:.*EXEC'
 programs=$(LC_ALL=C readelf -lW "$binary")
-stack=$(printf '%s\n' "$programs" | grep GNU_STACK)
-printf '%s\n' "$stack"
-printf '%s\n' "$stack" | grep -q 'RWE' && { echo 'FAIL: executable stack' >&2; exit 1; }
-printf '%s\n' "$programs" | grep -q 'LOAD.*RWE' && { echo 'FAIL: RWX load segment' >&2; exit 1; }
-printf '%s\n' "$programs" | grep -q GNU_RELRO || { echo 'FAIL: missing RELRO' >&2; exit 1; }
-LC_ALL=C readelf -dW "$binary" | grep -Eq 'BIND_NOW|FLAGS_1.*NOW' || { echo 'FAIL: missing immediate binding' >&2; exit 1; }
-LC_ALL=C objdump -d -Mintel "$binary" | grep -q mulpd || exit 1
-LC_ALL=C objdump -d -Mintel "$binary" | grep -q sqrtpd || exit 1
-echo 'PASS: ELF64 x86-64 EXEC; libc only; approved function imports; NX stack; no RWX LOAD; RELRO/NOW; SSE2.'
-echo 'Level 2 only. No claim of complete security isolation or Level 3 independence.'
+dynamic=$(LC_ALL=C readelf -dW "$binary")
+printf '%s\n' "$programs"
+! printf '%s\n' "$programs" | grep -q 'INTERP'
+! printf '%s\n' "$dynamic" | grep -Eq '\(NEEDED\)|\(SONAME\)'
+! printf '%s\n' "$programs" | grep -Eq 'GNU_STACK.*RWE|LOAD.*RWE'
+printf '%s\n' "$programs" | grep -q 'GNU_STACK.*RW'
+[ -z "$(LC_ALL=C nm --undefined-only "$binary")" ]
+symbols=$(LC_ALL=C nm "$binary")
+printf '%s\n' "$symbols" | grep -q ' T _start$'
+printf '%s\n' "$symbols" | grep -q ' T rt_format_f64$'
+printf '%s\n' "$symbols" | grep -q ' T rt_parse_f64$'
+! printf '%s\n' "$symbols" | grep -Eq '(__libc_start_main|__errno_location|_IO_|\bstrtod$|\bprintf$|\bfopen$|\bmalloc$)'
+LC_ALL=C objdump -d -Mintel "$binary" | grep -q mulpd
+LC_ALL=C objdump -d -Mintel "$binary" | grep -q sqrtpd
+echo 'PASS: L3-Core ELF64 x86-64 EXEC; own _start; no interpreter/NEEDED/undefined symbols; NX stack; no RWX LOAD; own decimal; SSE2.'
+echo 'No dynamic linker means RELRO/NOW checks are inapplicable, not a general security certification. Non-PIE.'

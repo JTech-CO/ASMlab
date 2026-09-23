@@ -1,15 +1,8 @@
 $ uname -a
-Linux 16b054fd1160 6.18.44 #1 SMP Sat Sep 12 15:35:21 UTC 2026 x86_64 GNU/Linux
+Linux 398f14d798a7 6.18.44 #1 SMP Sat Sep 12 15:35:21 UTC 2026 x86_64 GNU/Linux
 
-$ /mnt/data/asmlab_toolchain/linux-x64/bin/nasm -v
+$ /mnt/data/toolchain/linux-x64/bin/nasm -v
 NASM version 2.16.03 compiled on Sep 18 2026
-
-$ cc --version
-cc (Debian 14.2.0-19) 14.2.0
-Copyright (C) 2024 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 
 $ ld --version
 GNU ld (GNU Binutils for Debian) 2.44
@@ -18,19 +11,24 @@ This program is free software; you may redistribute it under the terms of
 the GNU General Public License version 3 or (at your option) a later version.
 This program has absolutely no warranty.
 
+$ cc --version
+cc (Debian 14.2.0-19) 14.2.0
+Copyright (C) 2024 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
 $ python3 --version
 Python 3.13.5
 
-$ getconf GNU_LIBC_VERSION
-glibc 2.41
+$ file bin/asmlab bin/asmlab-debug
+bin/asmlab:       ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=4892faaf91b367a32f2b0ed7bb433102798edad7, not stripped
+bin/asmlab-debug: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=3adcf94ce604384b978c7e167c915d4f838c0c50, with debug_info, not stripped
 
-$ file bin/asmlab bin/asmlab-debug bin/asmlab-runtime-smoke
-bin/asmlab:               ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=9625aec4215fdc3b349a9443b531345e30336099, for GNU/Linux 3.2.0, not stripped
-bin/asmlab-debug:         ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=e4fa7c8dcd5da7562b9c16e2b05bdeed440a4ef9, for GNU/Linux 3.2.0, with debug_info, not stripped
-bin/asmlab-runtime-smoke: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=fa2a7b5f24686131713f2fbfb5b398c0f7957b41, not stripped
+$ sha256sum bin/asmlab bin/asmlab-debug
+ce20954f4fb8a90255cb4d3425cff0783e595ef875db784bec329dd97e651c64  bin/asmlab
+9d9dc7aeaaaee28793f6c7a03d87091b07912fdd337e19ceaf8e00422390f5c5  bin/asmlab-debug
 
-$ sha256sum bin/asmlab bin/asmlab-debug bin/asmlab-libc-reference bin/asmlab-runtime-smoke
-5ee5da0613c2cd4c53515b26c9083fa58fb7ad872dd963ad38d7c35feb9f48d7  bin/asmlab
-9d1c3753ac8df83e78cca873a61e78e95af73967fad5a5415e1c6b3756fc7249  bin/asmlab-debug
-3243ca737a1cfcabf08fe9ecedaa731eaa378798db119eca27feb85d08d88662  bin/asmlab-libc-reference
-6f0a3899cd6afa83990817737bfeb8d646f199bb121c10b3ffc4b0ae6d961343  bin/asmlab-runtime-smoke
+Production app was linked directly by ld; cc/glibc are only build-host/development-reference dependencies.
+NASM is reused third-party prebuilt 2.16.03; not compiled from official source in this run.
+Remote CI executed: false. Separate WSL/Pi device tests: false.

@@ -1,0 +1,80 @@
+{
+  "case_count": 71,
+  "group_counts": {
+    "elf_audit": 2,
+    "static_link_inputs": 2,
+    "assembly_only_objects": 2,
+    "runtime_file_mappings": 2,
+    "mapped_process_result": 2,
+    "early_exit_flush": 4,
+    "output_failure_exit": 2,
+    "closed_input_error": 2,
+    "directory_read_error": 2,
+    "unterminated_final_line": 2,
+    "large_line_buffer_recovery": 2,
+    "decimal_overflow_rollback": 2,
+    "locale_loader_independent": 2,
+    "shared_reader_replay_queue": 2,
+    "clean_evaluator_fp_entry": 2,
+    "reference_rendering": 33,
+    "empty_root_no_libc": 6
+  },
+  "failure_count": 0,
+  "failures": [],
+  "schema_version": 1,
+  "version": "0.3.0",
+  "evidence": [
+    {
+      "binary": "asmlab",
+      "file_backed_mappings": [
+        "/mnt/data/ASMlab-v0.3.0/bin/asmlab"
+      ],
+      "kernel_special_mappings": [
+        "[stack]",
+        "[vdso]",
+        "[vvar]",
+        "[vvar_vclock]"
+      ]
+    },
+    {
+      "binary": "asmlab-debug",
+      "file_backed_mappings": [
+        "/mnt/data/ASMlab-v0.3.0/bin/asmlab-debug"
+      ],
+      "kernel_special_mappings": [
+        "[stack]",
+        "[vdso]",
+        "[vvar]",
+        "[vvar_vclock]"
+      ]
+    },
+    {
+      "empty_root_binary": "asmlab",
+      "root_files": [
+        "/asmlab",
+        "/script.asmlab"
+      ],
+      "binary_sha256": "ce20954f4fb8a90255cb4d3425cff0783e595ef875db784bec329dd97e651c64",
+      "no_lib_no_loader_no_shell": true,
+      "execution_uid": 65534,
+      "cases": 3
+    },
+    {
+      "empty_root_binary": "asmlab-debug",
+      "root_files": [
+        "/asmlab",
+        "/script.asmlab"
+      ],
+      "binary_sha256": "9d9dc7aeaaaee28793f6c7a03d87091b07912fdd337e19ceaf8e00422390f5c5",
+      "no_lib_no_loader_no_shell": true,
+      "execution_uid": 65534,
+      "cases": 3
+    }
+  ],
+  "skipped": [],
+  "limitations": [
+    "The empty-root check is an execution-dependency test, not an application sandbox/security certification.",
+    "Only Linux x86-64 tested. No remote CI, WSL2 host, ARM64, Raspberry Pi or server implementation asserted.",
+    "Default SIGPIPE/SIGINT behavior retained; TUI does not modify termios settings."
+  ]
+}

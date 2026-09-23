@@ -1,0 +1,35 @@
+$ /opt/pyvenv/bin/python3 tests/runtime_boundary.py --report /mnt/data/ASMlab-v0.2.0/build/evidence/runtime/runtime-boundary.json
+{
+  "schema_version": 1,
+  "version": "0.2.0",
+  "case_count": 712,
+  "group_counts": {
+    "provenance": 1,
+    "source_boundary": 13,
+    "source_no_syscall": 13,
+    "storage_free_headers": 3,
+    "app_object_imports": 3,
+    "primitive_object_imports": 3,
+    "dynamic_primitive_boundary": 3,
+    "no_fixture_linkage": 3,
+    "foundation_no_interp": 4,
+    "foundation_dependencies": 4,
+    "foundation_nx": 4,
+    "foundation_no_undefined": 3,
+    "standalone_entry": 1,
+    "standalone_no_crt": 1,
+    "standalone_not_math": 1,
+    "reference_batch_status": 3,
+    "reference_result_parity": 639,
+    "reference_trace_presence": 5,
+    "reference_trace_parity": 5
+  },
+  "failure_count": 0,
+  "failures": [],
+  "reference_result_records": 639,
+  "reference_trace_frames_per_backend": 74,
+  "limitations": [
+    "Runtime relocation/module boundaries audited, not a security certification.",
+    "Reference still uses libc; it is comparison evidence, not an independent high-precision math oracle."
+  ]
+}

@@ -1,114 +1,48 @@
-# ASMlab 0.2.0 architecture / 아키텍처
+# ASMlab v0.3.0 architecture
 
-## 1. Execution path
+L3-Core, Linux x86-64; bounded single-process REPL, not a network service.
+
+## Production path
 
 ```text
-TTY / -e expression / -f file
-        |
-        v
-bounded whole-line reader and validation
-        |
-        v
-NASM decimal lexer (strtod only converts an already scanned decimal token)
-        |
-        v
-Pratt parser -> bounded AST arena
-        |
-        v
-AST evaluator -> shape/domain checks -> temporary float64 arena
-        |
-        v
-precompiled NASM scalar / matrix / transcendental kernels
-        |
-        +-> exec_sse: actual selected instruction and immediate register capture
-        |               |
-        |               v
-        |          bounded trace records
-        v
-finite result check -> atomic user-variable copy -> ans update
-        |
-        v
-NASM terminal renderer: AST -> instruction and lanes -> result
+platform/linux/app_start.asm
+  _start → rt_host_init → main → rt_host_finish → exit_group
+
+src/asmlab.asm
+  core_storage + workspace + lexer/parser + evaluator
+  + math + observed SSE2 kernels + terminal views + main
+        │ runtime API
+        ├─ rt/primitives.asm
+        ├─ rt/integer.asm
+        ├─ rt/biguint.asm + decimal_parse.asm + decimal_format.asm
+        ├─ rt/console_format.asm
+        └─ rt/adapters/app_io.asm
+              └─ rt/fd_io.asm → platform/linux/syscalls.asm
 ```
 
-The AST is not compiled to new native code. Its operators select existing kernels. There is no executable-memory allocation, generated code cache, CPU emulator, or high-level numerical backend. The same static watched-instruction address can occur many times in a trace, because one instruction site is called with different operands.
+The core still forms one translation unit. Runtime modules are separate NASM objects. No dynamic loader, libc/CRT, external math library or test fixture is linked into the production image. `dev/runtime/libc_primitives.asm` + `rt/adapters/libc_io.asm` are a **development-only** comparison route, not a fallback selected at runtime.
 
-## 2. Dependency boundary
+## Preserved contracts
 
-The full application uses three separately linked project objects: numerical/CLI core, own memory/string primitives, and an explicitly transitional libc I/O adapter. Core imports only `rt_*` symbols. The adapter alone owns FILE pointers, stdin, console/file calls and strtod. Default builds no longer import libc memory/string entrypoints. CRT startup, the dynamic loader and libc I/O/decimal formatting remain.
+Float64 scalars/row-major matrices, dimensions1..16, deep-copy symbols, reserved `ans`, 512 AST nodes, fixed scratch value arena, bounded input and trace. Failed evaluation does not overwrite a variable or `ans`. `math.asm` and `kernels.asm` are unchanged from v0.2.0. The evaluator explicitly starts with MXCSR0x1f80 independently of parser conversion effects.
 
-`include/abi.inc`, `layout.inc`, and `rt/api.inc` are storage-free; `src/core_storage.asm` defines constants/BSS exactly once. Numerical source modules still form one translation unit. The development reference backend replaces only the primitive object with `dev/runtime/libc_primitives.asm`; it is not the default application.
+Observation captures selected SSE2 instructions in precompiled kernels. Node ID, actual PC, active lanes, XMM before/source/after and MXCSR snapshots are stored before rendering. Replay is post-computation, not JIT or live stepping. Formatting does not recompute a numerical result or emulate an XMM value. The converter's multiword integer work is not part of the selected SSE2 trace.
 
-A separate foundation contains integer conversion, fd buffering, raw syscalls and an own `_start`. Only `bin/asmlab-runtime-smoke` uses this standalone entry. It does not include the evaluator and is not a complete Level 3 ASMlab. Independent shared fixtures and fault injection are test infrastructure, not linked into production.
+## Decimal and UI
 
-[Runtime ABI](RUNTIME-ABI.md) · [Implemented scope](RUNTIME-FOUNDATION-KR.md)
+Exact integer-based conversions are bounded by the existing127-byte token and binary64 range. Local stack scratch avoids shared decimal state. The original terminal layout uses a trusted, limited format interpreter backed by typed Writer operations. It is not a general printf engine. Replay and REPL share one Reader; calling `rt_input_stdin` does not reset it.
 
-## 3. Bounded layouts
+The adapter has one script handle. Final cleanup checks buffered stdout errors and exits nonzero. No allocator, dynamic matrix descriptor, event loop, signal handler or external renderer is introduced.
 
-| Object | Layout | Bound |
-|---|---|---|
-| AST node | 128 bytes: kind, operator, children, float, name, shape, result pointer, ID, source byte position, matrix sibling | 512 nodes |
-| Value | rows, columns, then 256 contiguous float64 cells; 2,064 bytes | 512 temporary values |
-| Workspace entry | 32-byte name plus a complete value; 2,096 bytes | 64 entries, one reserved for ans |
-| Trace record | 96 bytes; see below | 8,192 records |
-| Input | NUL-terminated storage after whole-line validation | 4,095 source bytes |
+## Development artifacts
 
-Matrix dimensions must each be 1..16. A 1x1 matrix is treated as a scalar for broadcasting. There is no view or alias into another variable's data. Evaluation outputs are newly allocated in the bounded temporary arena; assignments copy data into the workspace only after successful evaluation. All temporaries and ASTs are reset on the next expression. The application is single-threaded and not a reentrant library.
+- `asmlab` / `asmlab-debug`: full L3-Core production binaries.
+- `asmlab-libc-reference`: intentionally libc/CRT-linked comparison.
+- `asmlab-runtime-smoke`: independent integer/fd foundation demonstration.
+- `runtime-primitives.so`, `runtime-faults.so`, `decimal-native.so`: NASM test fixtures.
+- `decimal-adapter.so`: intentionally libc-linked conversion reference fixture.
+- Python scripts: build provenance and verification only.
 
-## 4. Trace contract
+NASM/ld inputs and SHA256 are recorded in build sidecars. The gate inspects object membership and link arguments as well as ELF headers and process mappings; an empty-root test runs the full application without userspace libraries or shell. Neither checksum audits nor chroot imply a security certification.
 
-The following offsets are defined by the writer and consumed directly by the terminal view:
-
-| Offset | Bytes | Field |
-|---:|---:|---|
-| 0 | 8 | opcode ID |
-| 8 | 8 | AST node ID |
-| 16 | 8 | context element index |
-| 24 | 8 | address of the actual watched machine instruction |
-| 32 | 16 | XMM0 before |
-| 48 | 16 | XMM1 source before |
-| 64 | 16 | XMM0 immediately after |
-| 80 | 8 | MXCSR after, low 32 bits used |
-| 88 | 8 | MXCSR before, low 32 bits used |
-
-Captured registers are stored with `movupd` before any libc rendering call. The recorder itself preserves XMM1..XMM15; callers can use XMM4 as a matrix accumulator and XMM7 for polynomial arguments. The recorder clobbers RAX, RDX, R10, R11, flags, and XMM0 as documented at its entry. Every ordinary application function preserves the System V callee-saved general-purpose registers; external calls have a 16-byte-aligned stack.
-
-Selected instructions are `addsd/subsd/mulsd/divsd/sqrtsd`, `addpd/subpd/mulpd/divpd/sqrtpd`, `movapd`, and `xorpd`. The suffix `SD` has one active arithmetic lane; `PD` arithmetic has two float64 lanes. All 128 destination/source bits are still shown, including a scalar instruction's preserved upper destination lane. Lane 0 means the low 64 bits; lane 1 means the high 64 bits. `xorpd` uses a sign-bit mask; its source should be interpreted as a bit mask, not a numeric addend.
-
-The context element index is the flat start element for elementwise operations, the destination cell for matrix multiplication or transpose, and the current input element for unary functions and sum. It is not a universal source-memory address or loop iteration counter. MXCSR is captured state, including cumulative exception flags, not a per-instruction timing measurement.
-
-Not captured: ordinary loads/stores, branch decisions, integer exponent-bit processing, range-reduction conversions, shuffles/unpacks, or libc internals. Consequently this is an instrumented numerical trace, **not a complete CPU trace**.
-
-## 5. Matrix kernels
-
-Elementwise operations process two float64 cells at a time with packed SSE2, then one scalar tail cell when the element count is odd. A scalar operand is duplicated into both lanes before a packed operation. Zero divisors are checked before division.
-
-Matrix multiplication uses row-major arrays. For each result cell, two adjacent values of A are loaded into XMM0. Two corresponding strided values of B are gathered using scalar loads and `movhpd` into XMM1. `mulpd` forms two products; `addpd` accumulates the pair. `addsd` reduces the two accumulators and handles any odd final term. No AVX, FMA, SSE3 horizontal-add instruction, or external BLAS is required. This changes the summation order compared with a strictly serial dot product.
-
-Transpose copies each scalar to its destination index through a watched register move. Unary minus flips the sign bit with `xorpd`, preserving signed zero and subnormals rather than implementing `0-x`.
-
-## 6. Terminal states
-
-Normal evaluation renders the AST, up to six trace frames, and the result. Larger matrices are printed completely in blocks of four columns. `:replay` or `:step on` activates a fullscreen **post-execution replay** for actual retained frames. The replay tree is limited to ten displayed nodes and explicitly identifies any omission. Regular output contains the bounded full tree.
-
-No browser runtime, HTML renderer, ncurses dependency, or remote service is involved. ANSI is only used for terminal headings and replay clearing; plain output is available. The terminal uses canonical line input, so navigation keys require Enter. It does not implement shell-style history or an editor.
-
-## 7. Error and state rules
-
-Syntax must fully parse before evaluation. Nonrectangular matrices, dimension mismatch, undefined variables, domain failures, invalid numeric results, excessive recursion/nodes, or insufficient workspace prevent assignment commit. `ans` updates only on successful expressions. A script continues after expression errors but reports a nonzero final exit status.
-
-Input streams are read through a bounded assembly loop around `rt_input_getc` (the adapter currently uses libc `fgetc`), rather than accepting a valid-looking prefix of an oversized line. Embedded NUL/terminal-control bytes are replaced for safe reporting and the entire line is rejected. The source language permits ASCII identifiers; comments can contain ordinary UTF-8 text. All reported positions are byte offsets.
-
-## 8. Build and portability boundaries
-
-NASM's `elf64` output is the verified native build path in v0.2.0. Supplied release/debug/reference and foundation artifacts were directly assembled with NASM 2.16.03 and tested. The old single-unit GAS bridge is retained as historical source only; the v0.2.0 build target explicitly refuses it and never falls back to it. The target is little-endian Linux x86-64, libc/CRT, and the System V AMD64 calling convention. Native Windows requires a different object format, ABI, and OS adaptation; ARM requires different instructions and kernels. Those ports are absent. The future Pi/server plan is documentation only; see [plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md).
-
-The binary is deliberately non-PIE for straightforward address/disassembly inspection, with a non-executable stack, RELRO, and immediate binding. It is an educational bounded interpreter, not a security sandbox for hostile multi-user execution or a performance replacement for optimized numerical libraries.
-
-## References
-
-- NASM manual, ELF output formats: https://www.nasm.us/doc/nasm09.html
-- Intel architecture and instruction manuals: https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html
-- Microsoft WSL installation: https://learn.microsoft.com/en-us/windows/wsl/install
-
-These sources describe the toolchain/platform. They do not establish the correctness of ASMlab's implementation; that evidence is in the included tests and build report.
+[ABI](RUNTIME-ABI.md) · [Decimal](DECIMAL-CONVERSION.md) · [Verification](VERIFICATION.md) · [Future plans](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)

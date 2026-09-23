@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "passed",
-  "executed_at_utc": "2026-09-23T04:28:35.325090+00:00",
+  "executed_at_utc": "2026-09-23T07:50:39.461871+00:00",
   "steps": [
     {
       "name": "release-regression",
@@ -32,7 +32,7 @@
   "remote_ci_executed": false,
   "limitations": [
     "Linux x86-64 process execution only; no other platform was tested by this gate.",
-    "Not a Level 3 runtime; libc and CRT are retained.",
+    "Production is L3-Core; the development reference is intentionally libc-linked.",
     "Not a Pi/ARM64, Windows-native or web-server implementation."
   ],
   "native_contract_count": 1254,

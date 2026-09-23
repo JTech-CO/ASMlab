@@ -1,8 +1,8 @@
-$ /opt/pyvenv/bin/python3 tests/runtime_boundary.py --report /mnt/data/ASMlab-v0.2.0/build/evidence/runtime/runtime-boundary.json
+$ /opt/pyvenv/bin/python3 tests/runtime_boundary.py --report /mnt/data/ASMlab-v0.3.0/build/evidence/runtime/runtime-boundary.json
 {
   "schema_version": 1,
-  "version": "0.2.0",
-  "case_count": 712,
+  "version": "0.3.0",
+  "case_count": 716,
   "group_counts": {
     "provenance": 1,
     "source_boundary": 13,
@@ -12,10 +12,10 @@ $ /opt/pyvenv/bin/python3 tests/runtime_boundary.py --report /mnt/data/ASMlab-v0
     "primitive_object_imports": 3,
     "dynamic_primitive_boundary": 3,
     "no_fixture_linkage": 3,
-    "foundation_no_interp": 4,
-    "foundation_dependencies": 4,
-    "foundation_nx": 4,
-    "foundation_no_undefined": 3,
+    "foundation_no_interp": 5,
+    "foundation_dependencies": 5,
+    "foundation_nx": 5,
+    "foundation_no_undefined": 4,
     "standalone_entry": 1,
     "standalone_no_crt": 1,
     "standalone_not_math": 1,

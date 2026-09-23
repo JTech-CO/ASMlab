@@ -1,7 +1,7 @@
-$ /opt/pyvenv/bin/python3 tests/runtime_suite.py --report /mnt/data/ASMlab-v0.2.0/build/evidence/runtime/runtime-unit.json
+$ /opt/pyvenv/bin/python3 tests/runtime_suite.py --report /mnt/data/ASMlab-v0.3.0/build/evidence/runtime/runtime-unit.json
 {
   "schema_version": 1,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "case_count": 26123,
   "group_counts": {
     "abi": 17079,
@@ -65,7 +65,7 @@ $ /opt/pyvenv/bin/python3 tests/runtime_suite.py --report /mnt/data/ASMlab-v0.2.
   },
   "failure_count": 0,
   "failures": [],
-  "elapsed_seconds": 7.318,
+  "elapsed_seconds": 7.548,
   "limitations": [
     "Finite tests, not formal verification or a security certification.",
     "Guard pages cover listed boundary configurations; not all allocations.",

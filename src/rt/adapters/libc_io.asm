@@ -1,4 +1,4 @@
-; Explicit Level 2 compatibility adapter, NOT a standalone runtime.
+; DEVELOPMENT-ONLY Level 2 reference adapter. NEVER link into the L3 application.
 ; FILE pointers, libc globals and formatting/decimal libc calls live ONLY here.
 ; The app receives opaque handles and must never inspect their representation.
 %include "include/abi.inc"
@@ -10,12 +10,12 @@ section .bss
 stdin_handle: resq 1
 script_handle: resq 1
 section .text
-global rt_console_printf, rt_console_puts, rt_output_flush, rt_is_tty
+global rt_console_format, rt_console_puts, rt_output_flush, rt_is_tty
 global rt_input_stdin, rt_input_open_read, rt_input_close
 global rt_input_getc, rt_input_gets, rt_input_error
 ; IMPORTANT: a tail jump preserves AL (SysV vector varargs count) and all stack
 ; arguments. This temporary formatting API is NOT the final typed writer API.
-rt_console_printf:
+rt_console_format:
     jmp printf wrt ..plt
 rt_console_puts:
     jmp puts wrt ..plt

@@ -21,7 +21,7 @@ def main():
     summary={'schema_version':1,'version':(ROOT/'VERSION').read_text().strip(),'status':'running',
              'executed_at_utc':datetime.now(timezone.utc).isoformat(),'steps':[],
              'native_regression_counts':{},'remote_ci_executed':os.environ.get('GITHUB_ACTIONS')=='true',
-             'limitations':['Linux x86-64 process execution only; no other platform was tested by this gate.','Not a Level 3 runtime; libc and CRT are retained.',
+             'limitations':['Linux x86-64 process execution only; no other platform was tested by this gate.','Production is L3-Core; the development reference is intentionally libc-linked.',
                             'Not a Pi/ARM64, Windows-native or web-server implementation.']}
     path=out/'gate-summary.json'
     def save():path.write_text(json.dumps(summary,indent=2)+'\n')

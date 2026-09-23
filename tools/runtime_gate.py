@@ -14,7 +14,7 @@ def main():
     a=p.parse_args();out=a.report_dir.resolve();out.mkdir(parents=True,exist_ok=True)
     summary={'schema_version':1,'version':(ROOT/'VERSION').read_text().strip(),'status':'running',
              'executed_at_utc':datetime.now(timezone.utc).isoformat(),'steps':[],'counts':{},
-             'limitations':['Standalone runtime foundation only is no-libc; full ASMlab is still Level 2.',
+             'limitations':['The full native app and standalone smoke are libc-free; reference fixtures may use libc.',
                             'No ARM64/server/graph implementation or hardware verification.']}
     path=out/'runtime-summary.json'
     def save():path.write_text(json.dumps(summary,indent=2)+'\n')
