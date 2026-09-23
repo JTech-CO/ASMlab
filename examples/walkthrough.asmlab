@@ -1,0 +1,13 @@
+# ASMlab guided session. Run: ./bin/asmlab --bits -f examples/walkthrough.asmlab
+x = 3
+x^2 + 4^2
+sqrt([1,4,9,16]) + 2
+A = [1,2;3,4]
+B = [5,6;7,8]
+A*B
+A.*B
+transpose(A)
+sin(pi/4)
+cos(pi)
+log(e)
+:vars

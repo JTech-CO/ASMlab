@@ -1,0 +1,42 @@
+python3 tools/validation_bridge.py . build/asmlab.validation.s
+Validation translation: 4223 lines -> build/asmlab.validation.s
+as --64 -g -o build/asmlab.validation.o build/asmlab.validation.s
+cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now -o bin/asmlab-validation build/asmlab.validation.o
+python3 tests/verify.py ./bin/asmlab-validation
+{
+  "case_count": 14410,
+  "failure_count": 0,
+  "groups": {
+    "sin": 3009,
+    "cos": 3009,
+    "log": 3008,
+    "sqrt": 1004,
+    "scalar_regression": 21,
+    "integer_power": 300,
+    "scalar_composition": 200,
+    "matrix_product": 160,
+    "elementwise": 640,
+    "transpose": 160,
+    "broadcast": 160,
+    "negation": 160,
+    "vector_functions": 4,
+    "rejected_inputs": 46,
+    "exit_status": 1,
+    "workspace": 6,
+    "whole_line_rejection": 3,
+    "signed_zero": 3,
+    "matrix_bounds": 1,
+    "trace_capacity": 1,
+    "register_capture": 1,
+    "instruction_address": 4,
+    "fuzz_batch": 1,
+    "malformed_fuzz": 2500,
+    "pty_replay": 4,
+    "io_cli": 4
+  },
+  "elapsed_seconds": 0.523
+}
+sh tests/audit.sh ./bin/asmlab-validation
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+PASS: libc only; no external math/interpreter imports; non-executable stack; SSE2 kernels present.

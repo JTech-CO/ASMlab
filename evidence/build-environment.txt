@@ -1,0 +1,6 @@
+Linux 6.18.44 x86_64
+GNU assembler (GNU Binutils for Debian) 2.44
+cc (Debian 14.2.0-19) 14.2.0
+Python 3.13.5
+ldd (Debian GLIBC 2.41-12+deb13u3) 2.41
+bin/asmlab: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=22479c867072505bc7fbbf6a11ccf3b6c15267c9, for GNU/Linux 3.2.0, with debug_info, not stripped

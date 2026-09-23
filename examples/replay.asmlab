@@ -1,0 +1,4 @@
+# Paste into the interactive REPL; scripts do not consume keyboard replay input.
+:bits on
+sqrt([1,4,9,16]) + 2
+:replay

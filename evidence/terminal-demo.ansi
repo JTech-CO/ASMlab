@@ -1,0 +1,34 @@
+ASMlab 0.1.0 | NASM x86-64 | float64 | SSE2
+Type :help for syntax. Try sqrt([1,4,9,16]) + 2
+
+  input  [1,2]+[3,4]
+
+[1;36m01 / AST   syntax tree -> evaluated shape[0m
+  +- #003 binary +  -> 1 x 2
+    +- #000 matrix literal 1 x 2  -> 1 x 2
+      +- #001 number 1  -> 1 x 1
+      +- #002 number 2  -> 1 x 1
+    +- #004 matrix literal 1 x 2  -> 1 x 2
+      +- #005 number 3  -> 1 x 1
+      +- #006 number 4  -> 1 x 1
+
+[1;36m02 / EXECUTION   real instruction + captured XMM state[0m
+
+  frame 0001 | node #003 | element 0 | active lanes 2/2
+  @0x0000000000401e6f  addpd xmm0, xmm1
+                       lane 0                 lane 1
+  XMM0 before  [                    1 |                    2 ]
+  XMM1 source  [                    3 |                    4 ]
+  XMM0 after   [                    4 |                    6 ]
+  before bits  [ 0x3ff0000000000000 | 0x4000000000000000 ]
+  source bits  [ 0x4008000000000000 | 0x4010000000000000 ]
+  after bits   [ 0x4010000000000000 | 0x4018000000000000 ]
+  MXCSR 0x1f80 -> 0x1f80
+
+  1 / 1 captured frames shown; 1 watched instructions executed.
+  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex
+
+[1;36m03 / RESULT   float64 workspace value[0m
+  shape 1 x 2 | float64 | display: 8 significant digits
+   0 |               4               6
+--------------------------------------------------------------------------

@@ -1,0 +1,3 @@
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+PASS: libc only; no external math/interpreter imports; non-executable stack; SSE2 kernels present.
