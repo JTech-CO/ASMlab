@@ -1,10 +1,10 @@
-name: ASMlab Dynamic Workspace Gate
+name: ASMlab Observable Workbench Gate
 on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
   native-nasm:
-    name: v0.4.0 Gate / ${{ matrix.os }}
+    name: v0.5.0 Gate / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -36,7 +36,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: asmlab-v040-gate-${{ matrix.os }}
+          name: asmlab-v050-gate-${{ matrix.os }}
           retention-days: 30
           if-no-files-found: warn
           path: |

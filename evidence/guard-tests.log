@@ -1,5 +1,4 @@
-# First three groups completed; outer tool timeout interrupted the make batch before fourth completion.
-python3 tests/gate_guards.py --report build/gate-guards.json
+/usr/bin/python3 tests/gate_guards.py --report build/gate-guards.json
 {
   "schema_version": 1,
   "case_count": 6,
@@ -31,10 +30,10 @@ python3 tests/gate_guards.py --report build/gate-guards.json
     }
   ]
 }
-python3 tests/runtime_gate_guards.py --report build/runtime-gate-guards.json
+/usr/bin/python3 tests/runtime_gate_guards.py --report build/runtime-gate-guards.json
 {
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "case_count": 9,
   "failure_count": 0,
   "checks": [
@@ -76,7 +75,7 @@ python3 tests/runtime_gate_guards.py --report build/runtime-gate-guards.json
     }
   ]
 }
-python3 tests/l3_guards.py --report build/l3-gate-guards.json
+/usr/bin/python3 tests/l3_guards.py --report build/l3-gate-guards.json
 {
   "case_count": 9,
   "failure_count": 0,
@@ -119,10 +118,7 @@ python3 tests/l3_guards.py --report build/l3-gate-guards.json
     }
   ]
 }
-python3 tests/dynamic_guards.py --report build/dynamic-gate-guards.json
-make: *** [Makefile:50: test-guards] Terminated
-
-# Separate completed dynamic guard run
+/usr/bin/python3 tests/dynamic_guards.py --report build/dynamic-gate-guards.json
 {
   "case_count": 8,
   "failure_count": 0,
@@ -160,4 +156,48 @@ make: *** [Makefile:50: test-guards] Terminated
       "passed": true
     }
   ]
+}
+/usr/bin/python3 tests/workbench_guards.py --report build/workbench-gate-guards.json
+{
+  "case_count": 9,
+  "failure_count": 0,
+  "checks": [
+    {
+      "name": "relocated_tree_integrity",
+      "passed": true
+    },
+    {
+      "name": "reject_changed:src/platform/linux/terminal.asm",
+      "passed": true
+    },
+    {
+      "name": "reject_changed:src/workbench.asm",
+      "passed": true
+    },
+    {
+      "name": "reject_changed:include/observation.inc",
+      "passed": true
+    },
+    {
+      "name": "reject_changed:src/trace_v2.asm",
+      "passed": true
+    },
+    {
+      "name": "reject_changed:build/release/rt-terminal.o",
+      "passed": true
+    },
+    {
+      "name": "reject_wrong_trace_build_identity",
+      "passed": true
+    },
+    {
+      "name": "reject_missing_debug",
+      "passed": true
+    },
+    {
+      "name": "reject_hidden_tui_library",
+      "passed": true
+    }
+  ],
+  "scope": "Integrity-only guard mode, not a duplicate execution of feature tests. Hashes are not signed attestations."
 }

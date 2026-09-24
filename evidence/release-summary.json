@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "status": "passed",
   "steps": [
     {
@@ -18,17 +18,22 @@
     {
       "name": "dynamic",
       "exit_code": 0
+    },
+    {
+      "name": "workbench",
+      "exit_code": 0
     }
   ],
-  "executed_at_utc": "2026-09-23T22:32:22.927594+00:00",
+  "executed_at_utc": "2026-09-23T23:45:17.169231+00:00",
   "remote_ci_executed": false,
+  "workbench_assertions": 39247,
   "dynamic_assertions": 8892,
   "dynamic_empty_root_skipped": false,
   "l3_assertions": 106510,
   "empty_root_skipped": [],
   "native_assertions": 30074,
-  "runtime_assertions": 41255,
-  "total_assertions": 186731,
+  "runtime_assertions": 41261,
+  "total_assertions": 225984,
   "failure_count": 0,
   "test_sources_sha256": {
     "tests/decimal_exact.py": "0df661dc34bb3629c18ccb0537eece73c3fee7a39eff850cf93f297048046d84",
@@ -39,22 +44,25 @@
     "tests/l3_core.py": "91ab3ea7b51a5f72d8dce7ae64e2ca6d2f85ba730c705012cc2a1c47ad2b2b74",
     "tests/l3_guards.py": "5ec8e1b7d87092e1a38f74fc3a283d09a77539def0e767daceeb7fbca3613915",
     "tests/native_contract.py": "f9eed2321331bcd27241ea9f94ad0a796e774275e5a80875b98f5af934bbb40a",
+    "tests/observable_workbench.py": "4202825c06ed3bb4abb34ac2f700ef515a21ba767bb166f08e27ac9cf8fa6efa",
     "tests/runtime/abi_probe.asm": "92d2a0396909071dfb45a2282cd582fb999c023971fe32b347bd42fe6ee4ac0c",
     "tests/runtime/fake_syscalls.asm": "863c74e5bf29b62946921ef835e85e00a3190e21225531f3a0be193ea096c002",
-    "tests/runtime/smoke.asm": "af8045850340deb427da2febb2d88d54de26e38a664997d26bc56c13aa72500e",
-    "tests/runtime_boundary.py": "75d1b837ce04f431ad70f90651abd9c5f58d48db2d46c434c79c8ffb1fcf7ac4",
+    "tests/runtime/smoke.asm": "26fd657ab4b21eb4f48aa0ab7f4695b9d4b580a3de2b3c91884f880ca3f12c77",
+    "tests/runtime_boundary.py": "a496d2994af0f7e6b806eece6f870c2372f0e0f5125e25d8df97d8c20d6e6375",
     "tests/runtime_gate_guards.py": "75335ec2eb09f1f9c433055310b62c1a11b160d28d57e78c304d402d305ec2b4",
     "tests/runtime_suite.py": "cb5809ee0d06e370a03b1d1ed8a3e4579bf1eb217817ea134d67b0197b9369dd",
-    "tests/verify.py": "0598aa5cbd6ce6a993b6c8d12c6cd501c0bf97167fff7ced68524b86fa347a13",
+    "tests/verify.py": "90beaf4f32ca0e9f9e7742f8ba6cfde929ec9e86c2897c0e2694b8f833d55c07",
+    "tests/workbench_guards.py": "2b4384fa4a493d3d083cc3afd9eb60eeb7fdb7d7a44542d9993cb62e77110306",
     "tools/build_foundation.py": "8ee9bce107d1af92f2e1b8a10178382c101ec05a00976e567f49b47b0891d8fb",
-    "tools/build_native.py": "769cc696a04117c9b26d3d62f89f2f0c031de3cc4986f8337b3653edc6734063",
-    "tools/check_provenance.py": "fdd5a3bf7f686ac6cbcfba0917651233088db72efb91cf6fcb0974c9ded4a866",
+    "tools/build_native.py": "92dade64de83b68ed23f8f5a8e5842c451e8cd424f8b944b7f3920728f0212b2",
+    "tools/check_provenance.py": "fa3af00198d461a5cc5b37dd98b891e99828a4b8a26bbd990b10fc6a36202d51",
     "tools/dynamic_gate.py": "b934bc5e947b938472f7c27181a7df3b56c571ddbf505e1c5995f6d5392f770b",
     "tools/l3_gate.py": "5ebc72c5cfb99fd2fc92504a968cf72cc31257952682f45de337ca19e4b3fe1e",
     "tools/native_gate.py": "0d1d75d9d75c79fc13fc8243d85cf2407456bef3110bf2ff25280a9acda04613",
-    "tools/release_gate.py": "f76cc34d536cd97b97c46760b28b32074f95e7db071e0a9da0d614f0b894f295",
+    "tools/release_gate.py": "c452f5629cb43cb638ea2df6e6ae81d6968d3ee6b78ce6ac539731343dd42754",
     "tools/runtime_gate.py": "bca5bbce275e5b9a116651532d2e6dc6a5ba91fca48cab346a88c581cc062e0b",
-    "tools/validation_bridge.py": "564e80d5080698b2eeaf5bc2b3e1b9219b980238ecd92fa09ddc3a666059bf47"
+    "tools/validation_bridge.py": "564e80d5080698b2eeaf5bc2b3e1b9219b980238ecd92fa09ddc3a666059bf47",
+    "tools/workbench_gate.py": "ac267763ec8458a3a71270b6ee89d1b70dda58ca785994158c4bbcf575cf4bfd"
   },
   "limitations": [
     "Counts include repeated corpus executions on different profiles/backends and ABI assertions; not unique mathematical cases.",

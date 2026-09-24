@@ -1,6 +1,6 @@
 ; Assembly-only terminal views and capture replay. No browser/JS renderer.
 section .rodata
-banner: db 'ASMlab 0.4.0 | NASM x86-64 | float64 | SSE2',0
+banner: db 'ASMlab 0.5.0 | NASM x86-64 | float64 | SSE2',0
 rule: db '--------------------------------------------------------------------------',0
 fmt_panel: db 10,'%s',10,0
 fmt_panel_color: db 10,27,'[1;36m%s',27,'[0m',10,0
@@ -33,7 +33,7 @@ symbol_ediv: db './ (elementwise)',0
 symbol_pow: db '^ (integer scalar)',0
 fmt_trace_head: db 10,'  frame %04ld | node #%03ld | element %ld | active lanes %ld/2',10,0
 fmt_instruction: db '  @0x%016lx  %s',10,0
-trace_lanes: db '                       lane 0                 lane 1',0
+trace_lanes_caption: db '                       lane 0                 lane 1',0
 fmt_before: db '  XMM0 before  [ %20.12g | %20.12g ]',10,0
 fmt_source: db '  XMM1 source  [ %20.12g | %20.12g ]',10,0
 fmt_after: db '  XMM0 after   [ %20.12g | %20.12g ]',10,0
@@ -43,7 +43,7 @@ fmt_raw_after: db '  after bits   [ 0x%016lx | 0x%016lx ]',10,0
 fmt_mxcsr: db '  MXCSR 0x%04lx -> 0x%04lx',10,0
 fmt_trace_count: db 10,'  %ld / %ld captured frames shown; %ld watched instructions executed.',10,0
 trace_tip: db '  :replay = n/p frame navigation | :trace all = full trace | :bits on = hex',0
-trace_off_msg: db '  Trace capture is OFF. :trace on enables it for the next expression.',0
+trace_off_msg: db '  COMPUTE: no instruction captures or central SSE2 dispatch. :mode observe for next run.',0
 trace_none: db '  No watched arithmetic was required (literal, variable, or identity path).',0
 trace_trunc: db '  Capture cap reached: later frames were not retained; computation continued.',0
 fmt_result_shape: db '  shape %ld x %ld | float64 | display: 8 significant digits',10,0
@@ -61,6 +61,7 @@ fmt_error: db 'ERROR at byte %ld: %s',10,0
 fmt_error_input: db '  %s',10,'  %*s^',10,0
 fmt_json_head: db '{"ok":true,"rows":%ld,"cols":%ld,"data":[',0
 fmt_json_comma: db ',',0
+fmt_json_inline_end: db ']}',0
 fmt_json_end: db ']}',10,0
 fmt_json_error: db '{"ok":false,"error":"%s","position":%ld}',10,0
 replay_clear: db 27,'[2J',27,'[H',0
@@ -234,10 +235,7 @@ draw_frame:
     imul rax, rdi, TS
     lea r13, [trace_records+rax]
     mov r14, [r13]
-    mov r8d, 1
-    cmp r14, O_ADDPD
-    jb .lanes
-    mov r8d, 2
+    mov r8, [r13+TR_ACTIVE]
 .lanes:
     lea rdi, [fmt_trace_head]
     lea rsi, [r12+1]
@@ -251,7 +249,7 @@ draw_frame:
     mov rdx, [rax+r14*8]
     xor eax, eax
     call rt_console_format
-    SAY trace_lanes
+    SAY trace_lanes_caption
     lea rdi, [fmt_before]
     movsd xmm0, [r13+32]
     movsd xmm1, [r13+40]
@@ -296,8 +294,8 @@ render_trace:
     FRAME 0
     lea rdi, [p_trace]
     call panel
-    cmp qword [trace_enabled], 0
-    je .off
+    cmp qword [last_execution_mode], 0
+    jne .off
     cmp qword [trace_count], 0
     je .none
     xor ebx, ebx
@@ -449,7 +447,13 @@ print_value_plain:
     DONE
 
 print_json:
-    FRAME 0
+    xor esi, esi
+    jmp print_json_body
+print_json_inline:
+    mov esi, 1
+print_json_body:
+    FRAME 16
+    mov [rsp], rsi
     mov r12, rdi
     lea rdi, [fmt_json_head]
     mov rsi, [r12]
@@ -477,12 +481,21 @@ print_json:
     jmp .loop
 .done:
     lea rdi, [fmt_json_end]
+    cmp qword [rsp], 0
+    je .end_format
+    lea rdi, [fmt_json_inline_end]
+.end_format:
     xor eax, eax
     call rt_console_format
     DONE
 
 render_error:
     FRAME 0
+    cmp qword [trace_json_mode], 0
+    je .ordinary
+    call trace_export_error
+    DONE
+.ordinary:
     cmp qword [json_mode], 0
     jne .json
     lea rdi, [fmt_error]
@@ -507,6 +520,11 @@ render_error:
 
 render_result:
     FRAME 0
+    cmp qword [trace_json_mode], 0
+    je .ordinary
+    call trace_export
+    DONE
+.ordinary:
     cmp qword [json_mode], 0
     jne .json
     cmp qword [quiet_mode], 0

@@ -23,7 +23,8 @@ APP_MODULES = [
  ('src/rt/fd_io.asm','rt-fd-io'), ('src/rt/adapters/app_io.asm','rt-app-io'),
  ('src/rt/console_format.asm','rt-console-format'),
  ('src/platform/linux/syscalls.asm','rt-syscalls'), ('src/platform/linux/app_start.asm','rt-app-start'),
- ('src/rt/dynamic_memory.asm','rt-dynamic-memory'), ('src/platform/linux/virtual_memory.asm','rt-virtual-memory')]
+ ('src/rt/dynamic_memory.asm','rt-dynamic-memory'), ('src/platform/linux/virtual_memory.asm','rt-virtual-memory'),
+ ('src/platform/linux/terminal.asm','rt-terminal')]
 REFERENCE_MODULES = [('src/asmlab.asm','asmlab'),
  ('dev/runtime/libc_primitives.asm','rt-primitives'), ('src/rt/adapters/libc_io.asm','rt-libc-io'),
  ('src/rt/integer.asm','rt-integer'), ('src/rt/dynamic_memory.asm','rt-dynamic-memory'),
@@ -81,6 +82,9 @@ def main() -> int:
         modules = REFERENCE_MODULES if a.backend == 'libc-reference' else APP_MODULES
         flags = ['-f','elf64','-w+error'] + (['-O0','-g','-F','dwarf'] if a.profile=='debug' else ['-Ox'])
         if a.backend == 'libc-reference': flags += ['-DASMLAB_LIBC_REFERENCE=1']
+        source_id = hashlib.sha256(''.join(str(f.relative_to(ROOT))+':'+digest(f)+'\n' for f in build_inputs()).encode()).hexdigest()
+        source_id += '/'+a.profile+'/'+a.backend
+        flags += ['-DASMLAB_BUILD_ID=\"'+source_id+'\"']
         commands, objects = [], []
         for source, stem in modules:
             obj = folder/(stem+'.o'); listing = folder/(stem+'.lst')
@@ -98,7 +102,7 @@ def main() -> int:
         lp = shutil.which(linker[0]) or linker[0]
         report = {
             'schema_version':2,'project':'ASMlab','version':version,'profile':a.profile,
-            'build_kind':'nasm-native','runtime_backend':a.backend,
+            'build_kind':'nasm-native','runtime_backend':a.backend,'source_build_id':source_id,
             'built_at_utc':datetime.now(timezone.utc).isoformat(),
             'host':{'system':platform.system(),'machine':platform.machine(),
                     'kernel':platform.release(),'libc':list(platform.libc_ver())},

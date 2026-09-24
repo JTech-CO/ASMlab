@@ -36,6 +36,8 @@ def main():
                 'rt_input_error','rt_input_getc','rt_input_gets','rt_input_open_read','rt_input_stdin',
                 'rt_is_tty','rt_memcpy','rt_memset','rt_strnlen','rt_memcmp','rt_output_flush','rt_strcmp','rt_strlen',
                 'rt_heap_alloc','rt_heap_free','rt_memory_set_limit','rt_memory_stats','rt_parse_u64'}
+    ui_imports={'rt_memmove','rt_format_f64','rt_format_i64','rt_format_u64','rt_format_hex64',
+                'rt_console_write_bytes','rt_terminal_enter','rt_terminal_leave','rt_terminal_poll','rt_terminal_size'}
     core_paths=list((ROOT/'src').glob('*.asm'))+list((ROOT/'include').glob('*.inc'))+[ROOT/'include/rt/api.inc']
     forbidden=r'\b(call|jmp)\s+(?:printf|puts|fopen|fclose|fflush|fgetc|fgets|ferror|strtod|memcpy|memset|memcmp|memmove|strcmp|strlen|strnlen|isatty)\b|\[\s*stdin\s*\]'
     for path in core_paths:
@@ -48,7 +50,7 @@ def main():
     primitive_names={'memcpy','memmove','memset','memcmp','strlen','strnlen','strcmp'}
     for meta in full:
         name=meta['binary'];objects=meta['project_objects'];is_reference=meta['runtime_backend']=='libc-reference'
-        c.check('app_object_imports',undefined(ROOT/objects[0]['path'])==rt_imports,name)
+        c.check('app_object_imports',undefined(ROOT/objects[0]['path'])==(rt_imports if is_reference else rt_imports|ui_imports),name)
         imports=undefined(ROOT/objects[1]['path'])
         c.check('primitive_object_imports',imports==primitive_names if is_reference else not imports,name)
         imported=undefined(ROOT/name,is_reference)

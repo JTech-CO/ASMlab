@@ -46,10 +46,14 @@ eval_call:
     jmp .args
 .dispatch:
     mov rax, [r12+N_ID]
-    mov [trace_node], rax
+    TRACE_SET trace_node, rax
     mov rax, [r12+N_POS]
     mov [tok_pos], rax
-    mov qword [trace_element], 0
+    TRACE_SET trace_element, 0
+    TRACE_SET trace_stage, ST_NONE
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_k, -1
+    TRACE_SET trace_lanes, 1
     cmp qword [r12+N_TYPE], INDEX
     je .index
     cmp r13, F_ZEROS
@@ -252,7 +256,11 @@ index_value:
     test rax, rax
     jz .return
     mov r13, rax
-    mov [trace_element], r14
+    TRACE_SET trace_element, r14
+    TRACE_SET trace_stage, ST_INDEX
+    TRACE_SET trace_kind, KIND_INPUT
+    TRACE_SET trace_lanes, 1
+    TRACE_SHAPE r12
     mov r10, [r12+V_DATA]
     movsd xmm1, [r10+r14*8]
     pxor xmm0, xmm0
@@ -301,12 +309,16 @@ linspace_value:
     test rax, rax
     jz .return
     mov r12, rax
+    TRACE_SHAPE r12
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_stage, ST_LINSPACE
+    TRACE_SET trace_lanes, 1
     mov r15, [rax+V_DATA]
     lea rax, [r14-1]
     cvtsi2sd xmm6, rax
     xor r13d, r13d
 .loop:
-    mov [trace_element], r13
+    TRACE_SET trace_element, r13
     lea rax, [r14-1]
     cmp r13, rax
     je .last

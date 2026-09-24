@@ -1,0 +1,24 @@
+ASMlab 0.5.0 / OBSERVABLE WORKBENCH  NEXT: observe  LAST: observe#4            
+SOURCE y=sin(x)                                                                
+node #0  bytes 2..8 | 187 kept/187 executed; 0 dropped                         
+-------------------------------------------------------------------------------
+AST / completed node value INSTRUCTIONS                                        
+ #2 y 1x9                   4 #0 mulsd xmm0, xmm1 trig-range-reduction         
+>  #0 sin 1x9               5 #0 subsd xmm0, xmm1 trig-range-reduction         
+     #1 x 1x9               6 #0 mulsd xmm0, xmm1 trig-range-reduction         
+                            7 #0 mulsd xmm0, xmm1 trig-polynomial              
+                            8 #0 addsd xmm0, xmm1 trig-polynomial              
+                           >9 #0 mulsd xmm0, xmm1 trig-polynomial              
+                           REGISTERS / captured bits and values                
+                           PC 0x0000000000402208  elem 0  lanes 1/1 k -1       
+                           XMM0 in  0x3d2ae09e710f9fbf | 0x0000000000000000    
+                           XMM1 src 0x3fd4da0babd0c632 | 0x0000000000000000    
+                           XMM0 out 0x3d1183870b921e4f | 0x0000000000000000    
+                           MXCSR 0x0000000000001fa0 -> 0x0000000000001fa0      
+VALUE node #0 1x9  FINAL 1x9  (completed node value; not a partial accumulator)
+r1 c1: -0.84147098 | -0.68163876 | -0.47942554 | -0.24740396 |                 
+                                                                               
+                                                                               
+                                                                               
+Tab focus | arrows move | PgUp/Dn | g/G ends | / search | f next | b bits | e e
+FOCUS value. Arrows scroll rows/columns; Home/End jump. Coordinates shown here 

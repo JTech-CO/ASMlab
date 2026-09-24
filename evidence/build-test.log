@@ -1,52 +1,56 @@
-python3 tools/build_native.py --profile release --nasm "/mnt/data/asmlab_tools/linux-x64/bin/nasm" --cc "cc" --ld "ld"
-python3 tools/build_native.py --profile debug --nasm "/mnt/data/asmlab_tools/linux-x64/bin/nasm" --cc "cc" --ld "ld"
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/asmlab.lst -o build/debug/asmlab.o src/asmlab.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/asmlab.lst -o build/release/asmlab.o src/asmlab.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-primitives.lst -o build/debug/rt-primitives.o src/rt/primitives.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-integer.lst -o build/debug/rt-integer.o src/rt/integer.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-biguint.lst -o build/debug/rt-biguint.o src/rt/biguint.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-decimal-parse.lst -o build/debug/rt-decimal-parse.o src/rt/decimal_parse.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-decimal-format.lst -o build/debug/rt-decimal-format.o src/rt/decimal_format.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-fd-io.lst -o build/debug/rt-fd-io.o src/rt/fd_io.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-primitives.lst -o build/release/rt-primitives.o src/rt/primitives.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-app-io.lst -o build/debug/rt-app-io.o src/rt/adapters/app_io.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-integer.lst -o build/release/rt-integer.o src/rt/integer.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-biguint.lst -o build/release/rt-biguint.o src/rt/biguint.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-console-format.lst -o build/debug/rt-console-format.o src/rt/console_format.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-decimal-parse.lst -o build/release/rt-decimal-parse.o src/rt/decimal_parse.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-syscalls.lst -o build/debug/rt-syscalls.o src/platform/linux/syscalls.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-app-start.lst -o build/debug/rt-app-start.o src/platform/linux/app_start.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-decimal-format.lst -o build/release/rt-decimal-format.o src/rt/decimal_format.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-dynamic-memory.lst -o build/debug/rt-dynamic-memory.o src/rt/dynamic_memory.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf -I./ -l build/debug/rt-virtual-memory.lst -o build/debug/rt-virtual-memory.o src/platform/linux/virtual_memory.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-fd-io.lst -o build/release/rt-fd-io.o src/rt/fd_io.asm
-+ ld -m elf_x86_64 -static --no-undefined -z noexecstack --build-id=sha1 -e _start -Map build/debug/asmlab.map -o bin/asmlab-debug build/debug/asmlab.o build/debug/rt-primitives.o build/debug/rt-integer.o build/debug/rt-biguint.o build/debug/rt-decimal-parse.o build/debug/rt-decimal-format.o build/debug/rt-fd-io.o build/debug/rt-app-io.o build/debug/rt-console-format.o build/debug/rt-syscalls.o build/debug/rt-app-start.o build/debug/rt-dynamic-memory.o build/debug/rt-virtual-memory.o
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-app-io.lst -o build/release/rt-app-io.o src/rt/adapters/app_io.asm
-Built bin/asmlab-debug; SHA256 d96ec7f0f73923f15594a914474cf1caedc4c2fb1a973ead855647385b414e42
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-console-format.lst -o build/release/rt-console-format.o src/rt/console_format.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-syscalls.lst -o build/release/rt-syscalls.o src/platform/linux/syscalls.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-app-start.lst -o build/release/rt-app-start.o src/platform/linux/app_start.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-dynamic-memory.lst -o build/release/rt-dynamic-memory.o src/rt/dynamic_memory.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -I./ -l build/release/rt-virtual-memory.lst -o build/release/rt-virtual-memory.o src/platform/linux/virtual_memory.asm
-+ ld -m elf_x86_64 -static --no-undefined -z noexecstack --build-id=sha1 -e _start -Map build/release/asmlab.map -o bin/asmlab build/release/asmlab.o build/release/rt-primitives.o build/release/rt-integer.o build/release/rt-biguint.o build/release/rt-decimal-parse.o build/release/rt-decimal-format.o build/release/rt-fd-io.o build/release/rt-app-io.o build/release/rt-console-format.o build/release/rt-syscalls.o build/release/rt-app-start.o build/release/rt-dynamic-memory.o build/release/rt-virtual-memory.o
-Built bin/asmlab; SHA256 9db2c13786115e25f90b62d3fbd2e292cb08ab82e530a2cf3d343bf5265696ad
-python3 tools/build_native.py --profile release --backend libc-reference --nasm "/mnt/data/asmlab_tools/linux-x64/bin/nasm" --cc "cc" --ld "ld"
-python3 tools/build_foundation.py --nasm "/mnt/data/asmlab_tools/linux-x64/bin/nasm" --ld "ld" --cc "cc"
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/asmlab.lst -o build/reference/asmlab.o src/asmlab.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/primitives.o src/rt/primitives.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/integer.o src/rt/integer.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fd_io.o src/rt/fd_io.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/syscalls.o src/platform/linux/syscalls.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/start.o src/platform/linux/start.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/smoke.o tests/runtime/smoke.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/probe.o tests/runtime/abi_probe.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fake_syscalls.o tests/runtime/fake_syscalls.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/libc_io.o src/rt/adapters/libc_io.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/biguint.o src/rt/biguint.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/decimal_parse.o src/rt/decimal_parse.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/decimal_format.o src/rt/decimal_format.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/dynamic_memory.o src/rt/dynamic_memory.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/virtual_memory.o src/platform/linux/virtual_memory.asm
+NASM build of release/debug/reference/foundation followed by full release gate.
+
+python3 tools/build_native.py --profile release --nasm "/mnt/data/toolchain/linux-x64/bin/nasm" --cc "cc" --ld "ld"
+python3 tools/build_native.py --profile debug --nasm "/mnt/data/toolchain/linux-x64/bin/nasm" --cc "cc" --ld "ld"
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/asmlab.lst -o build/release/asmlab.o src/asmlab.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/asmlab.lst -o build/debug/asmlab.o src/asmlab.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-primitives.lst -o build/debug/rt-primitives.o src/rt/primitives.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-integer.lst -o build/debug/rt-integer.o src/rt/integer.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-biguint.lst -o build/debug/rt-biguint.o src/rt/biguint.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-decimal-parse.lst -o build/debug/rt-decimal-parse.o src/rt/decimal_parse.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-decimal-format.lst -o build/debug/rt-decimal-format.o src/rt/decimal_format.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-fd-io.lst -o build/debug/rt-fd-io.o src/rt/fd_io.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-app-io.lst -o build/debug/rt-app-io.o src/rt/adapters/app_io.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-console-format.lst -o build/debug/rt-console-format.o src/rt/console_format.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-syscalls.lst -o build/debug/rt-syscalls.o src/platform/linux/syscalls.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-app-start.lst -o build/debug/rt-app-start.o src/platform/linux/app_start.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-primitives.lst -o build/release/rt-primitives.o src/rt/primitives.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-dynamic-memory.lst -o build/debug/rt-dynamic-memory.o src/rt/dynamic_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-integer.lst -o build/release/rt-integer.o src/rt/integer.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-virtual-memory.lst -o build/debug/rt-virtual-memory.o src/platform/linux/virtual_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-biguint.lst -o build/release/rt-biguint.o src/rt/biguint.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -O0 -g -F dwarf '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/debug/native"' -I./ -l build/debug/rt-terminal.lst -o build/debug/rt-terminal.o src/platform/linux/terminal.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-decimal-parse.lst -o build/release/rt-decimal-parse.o src/rt/decimal_parse.asm
++ ld -m elf_x86_64 -static --no-undefined -z noexecstack --build-id=sha1 -e _start -Map build/debug/asmlab.map -o bin/asmlab-debug build/debug/asmlab.o build/debug/rt-primitives.o build/debug/rt-integer.o build/debug/rt-biguint.o build/debug/rt-decimal-parse.o build/debug/rt-decimal-format.o build/debug/rt-fd-io.o build/debug/rt-app-io.o build/debug/rt-console-format.o build/debug/rt-syscalls.o build/debug/rt-app-start.o build/debug/rt-dynamic-memory.o build/debug/rt-virtual-memory.o build/debug/rt-terminal.o
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-decimal-format.lst -o build/release/rt-decimal-format.o src/rt/decimal_format.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-fd-io.lst -o build/release/rt-fd-io.o src/rt/fd_io.asm
+Built bin/asmlab-debug; SHA256 839c832ccebe7cee7defafac8f2feb3a7513d053f1d12248695c8b3df108bd33
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-app-io.lst -o build/release/rt-app-io.o src/rt/adapters/app_io.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-console-format.lst -o build/release/rt-console-format.o src/rt/console_format.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-syscalls.lst -o build/release/rt-syscalls.o src/platform/linux/syscalls.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-app-start.lst -o build/release/rt-app-start.o src/platform/linux/app_start.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-dynamic-memory.lst -o build/release/rt-dynamic-memory.o src/rt/dynamic_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-virtual-memory.lst -o build/release/rt-virtual-memory.o src/platform/linux/virtual_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/native"' -I./ -l build/release/rt-terminal.lst -o build/release/rt-terminal.o src/platform/linux/terminal.asm
++ ld -m elf_x86_64 -static --no-undefined -z noexecstack --build-id=sha1 -e _start -Map build/release/asmlab.map -o bin/asmlab build/release/asmlab.o build/release/rt-primitives.o build/release/rt-integer.o build/release/rt-biguint.o build/release/rt-decimal-parse.o build/release/rt-decimal-format.o build/release/rt-fd-io.o build/release/rt-app-io.o build/release/rt-console-format.o build/release/rt-syscalls.o build/release/rt-app-start.o build/release/rt-dynamic-memory.o build/release/rt-virtual-memory.o build/release/rt-terminal.o
+python3 tools/build_native.py --profile release --backend libc-reference --nasm "/mnt/data/toolchain/linux-x64/bin/nasm" --cc "cc" --ld "ld"
+Built bin/asmlab; SHA256 3903b07897cda3ff9c043eccbae0363963b433eb975f4b75557e0336b4c09867
+python3 tools/build_foundation.py --nasm "/mnt/data/toolchain/linux-x64/bin/nasm" --ld "ld" --cc "cc"
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/libc-reference"' -I./ -l build/reference/asmlab.lst -o build/reference/asmlab.o src/asmlab.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/primitives.o src/rt/primitives.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/integer.o src/rt/integer.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fd_io.o src/rt/fd_io.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/syscalls.o src/platform/linux/syscalls.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/start.o src/platform/linux/start.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/smoke.o tests/runtime/smoke.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/probe.o tests/runtime/abi_probe.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/fake_syscalls.o tests/runtime/fake_syscalls.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/libc_io.o src/rt/adapters/libc_io.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/biguint.o src/rt/biguint.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/decimal_parse.o src/rt/decimal_parse.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/decimal_format.o src/rt/decimal_format.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/dynamic_memory.o src/rt/dynamic_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -Ox -w+error -I./ -o build/runtime/virtual_memory.o src/platform/linux/virtual_memory.asm
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-0.map -e _start -o bin/asmlab-runtime-smoke build/runtime/start.o build/runtime/smoke.o build/runtime/primitives.o build/runtime/integer.o build/runtime/fd_io.o build/runtime/syscalls.o
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-1.map -shared -Bsymbolic -o bin/tests/runtime-primitives.so build/runtime/primitives.o build/runtime/integer.o build/runtime/fd_io.o build/runtime/syscalls.o build/runtime/probe.o
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-2.map -shared -Bsymbolic -o bin/tests/runtime-faults.so build/runtime/primitives.o build/runtime/integer.o build/runtime/fd_io.o build/runtime/fake_syscalls.o build/runtime/probe.o
@@ -54,17 +58,18 @@ python3 tools/build_foundation.py --nasm "/mnt/data/asmlab_tools/linux-x64/bin/n
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-4.map -shared -Bsymbolic -o bin/tests/decimal-native.so build/runtime/biguint.o build/runtime/decimal_parse.o build/runtime/decimal_format.o build/runtime/probe.o
 + ld -m elf_x86_64 -z noexecstack --build-id=sha1 --no-undefined -Map build/runtime/target-5.map -shared -Bsymbolic -o bin/tests/dynamic-memory.so build/runtime/dynamic_memory.o build/runtime/virtual_memory.o build/runtime/probe.o
 Built standalone foundation and development fixtures.
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-primitives.lst -o build/reference/rt-primitives.o dev/runtime/libc_primitives.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-libc-io.lst -o build/reference/rt-libc-io.o src/rt/adapters/libc_io.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-integer.lst -o build/reference/rt-integer.o src/rt/integer.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-dynamic-memory.lst -o build/reference/rt-dynamic-memory.o src/rt/dynamic_memory.asm
-+ /mnt/data/asmlab_tools/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 -I./ -l build/reference/rt-virtual-memory.lst -o build/reference/rt-virtual-memory.o src/platform/linux/virtual_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/libc-reference"' -I./ -l build/reference/rt-primitives.lst -o build/reference/rt-primitives.o dev/runtime/libc_primitives.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/libc-reference"' -I./ -l build/reference/rt-libc-io.lst -o build/reference/rt-libc-io.o src/rt/adapters/libc_io.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/libc-reference"' -I./ -l build/reference/rt-integer.lst -o build/reference/rt-integer.o src/rt/integer.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/libc-reference"' -I./ -l build/reference/rt-dynamic-memory.lst -o build/reference/rt-dynamic-memory.o src/rt/dynamic_memory.asm
++ /mnt/data/toolchain/linux-x64/bin/nasm -f elf64 -w+error -Ox -DASMLAB_LIBC_REFERENCE=1 '-DASMLAB_BUILD_ID="675de853744b234bbe4f29e9282b73394cbd39e96c1f3a1b16ac455de208f4fa/release/libc-reference"' -I./ -l build/reference/rt-virtual-memory.lst -o build/reference/rt-virtual-memory.o src/platform/linux/virtual_memory.asm
 + cc -no-pie -Wl,-z,noexecstack,-z,relro,-z,now,--build-id=sha1 -Wl,-Map,build/reference/asmlab.map -o bin/asmlab-libc-reference build/reference/asmlab.o build/reference/rt-primitives.o build/reference/rt-libc-io.o build/reference/rt-integer.o build/reference/rt-dynamic-memory.o build/reference/rt-virtual-memory.o
-Built bin/asmlab-libc-reference; SHA256 1563db9678c59b049a4f52fe0835552ebe8ba41a2800adbd5dd2f0da7b5f67df
-python3 tools/release_gate.py --report-dir build/evidence
+Built bin/asmlab-libc-reference; SHA256 5197f22dfc895dff963df646971db881be9cfda2cc4a1408eb784e586379451f
+
+FULL RELEASE GATE:
 {
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "status": "passed",
   "steps": [
     {
@@ -82,17 +87,22 @@ python3 tools/release_gate.py --report-dir build/evidence
     {
       "name": "dynamic",
       "exit_code": 0
+    },
+    {
+      "name": "workbench",
+      "exit_code": 0
     }
   ],
-  "executed_at_utc": "2026-09-23T22:32:22.927594+00:00",
+  "executed_at_utc": "2026-09-23T23:45:17.169231+00:00",
   "remote_ci_executed": false,
+  "workbench_assertions": 39247,
   "dynamic_assertions": 8892,
   "dynamic_empty_root_skipped": false,
   "l3_assertions": 106510,
   "empty_root_skipped": [],
   "native_assertions": 30074,
-  "runtime_assertions": 41255,
-  "total_assertions": 186731,
+  "runtime_assertions": 41261,
+  "total_assertions": 225984,
   "failure_count": 0,
   "limitations": [
     "Counts include repeated corpus executions on different profiles/backends and ABI assertions; not unique mathematical cases.",

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "version": "0.5.0",
+  "status": "passed",
+  "steps": [
+    {
+      "name": "native",
+      "exit_code": 0
+    },
+    {
+      "name": "runtime",
+      "exit_code": 0
+    },
+    {
+      "name": "l3",
+      "exit_code": 0
+    },
+    {
+      "name": "dynamic",
+      "exit_code": 0
+    },
+    {
+      "name": "workbench",
+      "exit_code": 0
+    }
+  ],
+  "executed_at_utc": "2026-09-23T23:45:17.169231+00:00",
+  "remote_ci_executed": false,
+  "workbench_assertions": 39247,
+  "dynamic_assertions": 8892,
+  "dynamic_empty_root_skipped": false,
+  "l3_assertions": 106510,
+  "empty_root_skipped": [],
+  "native_assertions": 30074,
+  "runtime_assertions": 41261,
+  "total_assertions": 225984,
+  "failure_count": 0,
+  "limitations": [
+    "Counts include repeated corpus executions on different profiles/backends and ABI assertions; not unique mathematical cases.",
+    "Not formal correctness, complete memory safety, high-precision math certification or cross-platform verification.",
+    "Full production app is libc/CRT-free; development comparison binaries/fixtures may intentionally link libc."
+  ]
+}

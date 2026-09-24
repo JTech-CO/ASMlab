@@ -32,8 +32,9 @@ class Case:
     rtol: float = 1e-12
 
 class Suite:
-    def __init__(self, binary: Path):
+    def __init__(self, binary: Path, numeric_mode: str | None = None):
         self.binary = str(binary.resolve())
+        self.numeric_mode = numeric_mode
         self.counts: dict[str, int] = {}
         self.worst: dict[str, dict[str, Any]] = {}
         self.failures: list[str] = []
@@ -43,7 +44,7 @@ class Suite:
         if not condition:
             self.failures.append(f'{family}: {detail}')
     def invoke(self, text: str | bytes, *flags: str) -> subprocess.CompletedProcess:
-        return subprocess.run([self.binary, *flags], input=text,
+        return subprocess.run([self.binary, *(['--mode',self.numeric_mode] if self.numeric_mode and '--json' in flags else []), *flags], input=text,
                               capture_output=True, text=isinstance(text, str), timeout=30)
     def numeric(self, cases: list[Case]) -> None:
         response = self.invoke('\n'.join(c.expression for c in cases) + '\n', '--json')
@@ -77,7 +78,7 @@ class Suite:
         self.mark('exit_status', response.returncode == 1, str(response.returncode))
     def finish(self) -> dict[str, Any]:
         return {'schema_version': 1, 'binary': Path(self.binary).name,
-                'seed': 20260922, 'case_count': sum(self.counts.values()),
+                'seed': 20260922, 'numeric_mode': self.numeric_mode or 'default', 'case_count': sum(self.counts.values()),
                 'group_counts': self.counts, 'failure_count': len(self.failures),
                 'failures': self.failures, 'numeric_comparisons': self.worst,
                 'reference': 'host Python standard-library math and direct scalar formulas',
@@ -131,8 +132,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('binary', type=Path)
     parser.add_argument('--report', type=Path)
+    parser.add_argument('--numeric-mode', choices=['observe','compute'], help='Override mode for JSON numeric/error batches; legacy capture UI tests remain Observe.')
     args = parser.parse_args()
-    s = Suite(args.binary)
+    s = Suite(args.binary, args.numeric_mode)
     rng = random.Random(20260922)
     cases: list[Case] = []
     for fn in ('sin', 'cos'):

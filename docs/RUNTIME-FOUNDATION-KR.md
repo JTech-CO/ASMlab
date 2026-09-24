@@ -1,4 +1,4 @@
-# ASMlab v0.4.0 런타임 통합
+# ASMlab v0.5.0 런타임 통합
 
 v0.2.0의 자체 기본 루틴과 독립 smoke를 **전체 수치 계산 앱으로 통합**했다. 과거 v0.2.0 설명은 [보관 문서](history/v0.2.0/RUNTIME-FOUNDATION-KR.md)에 있다.
 
@@ -25,3 +25,7 @@ v0.2.0의 자체 기본 루틴과 독립 smoke를 **전체 수치 계산 앱으�
 **개발용 libc 비교 실행 파일/fixture는 남아 있지만 기본 앱에는 연결하지 않는다.** 사용자 배포 시 계산 실행만 필요하면 `bin/asmlab` 한 파일이면 된다. 소스 재빌드·검증 패키지에는 `.o`·링크 맵·테스트도 포함한다.
 
 [ABI](RUNTIME-ABI.md) · [decimal 알고리즘](DECIMAL-CONVERSION.md) · [전체 검증](VERIFICATION.md)
+
+## v0.5.0 터미널 경계
+
+`src/platform/linux/terminal.asm`가 kernel termios·signal·poll·winsize를 소유하며 코어는 `rt_terminal_*` API만 호출한다. 원래 Reader에 이미 읽힌 바이트를 먼저 소비한다. native는14개 오브젝트, libc 비교 빌드는 native TUI를 지원하지 않는다. 기존 기본 루틴·exact decimal·동적 allocator는 유지한다. [상세 ABI](RUNTIME-ABI.md).

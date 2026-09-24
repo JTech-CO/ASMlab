@@ -2,6 +2,7 @@
 ; sin/cos: split pi/2 range reduction, |x|<=1e6, |r|<=pi/4.
 ; log: normalize x=2^k*m, atanh series, |z|<=0.171573.
 ; These are bounded real float64 kernels, not correctly-rounded libm replacements.
+%ifndef COMPUTE_BUILD
 section .rodata
 sin_coeff:
     dq 2.8114572543455206e-15, -7.647163731819816e-13
@@ -19,6 +20,7 @@ log_coeff:
     dq 0.06666666666666667, 0.07692307692307693
     dq 0.09090909090909091, 0.1111111111111111
     dq 0.14285714285714285, 0.2, 0.3333333333333333, 1.0
+%endif
 section .text
 math_sin:
     xor esi, esi
@@ -29,6 +31,7 @@ math_cos:
 
 math_trig:
     FRAME 32
+    TRACE_SET trace_lanes, 1
     mov r12d, esi
     movsd [rsp], xmm0
     movapd xmm1, xmm0
@@ -44,6 +47,7 @@ math_trig:
     movsd xmm0, [one]
     jmp .return
 .reduce:
+    TRACE_SET trace_stage, ST_TRIG_REDUCE
     movsd xmm1, [inv_pio2]
     OP O_MULSD
     cvtsd2si rbx, xmm0
@@ -88,6 +92,7 @@ math_trig:
     lea r13, [cos_coeff]
     mov r12d, 10
 .poly:
+    TRACE_SET trace_stage, ST_TRIG_POLYNOMIAL
     movsd xmm0, [r13]
     mov ebx, 1
 .horner:
@@ -103,6 +108,7 @@ math_trig:
     movsd xmm1, [rsp+16]
     OP O_MULSD
 .sign:
+    TRACE_SET trace_stage, ST_TRIG_RECONSTRUCT
     test r15d, r15d
     jz .return
     movapd xmm1, xmm0
@@ -118,6 +124,8 @@ math_trig:
 
 math_log:
     FRAME 16
+    TRACE_SET trace_stage, ST_LOG_NORMALIZE
+    TRACE_SET trace_lanes, 1
     pxor xmm1, xmm1
     ucomisd xmm0, xmm1
     jbe .domain
@@ -149,6 +157,7 @@ math_log:
     OP O_MULSD
     inc r12
 .z:
+    TRACE_SET trace_stage, ST_LOG_TRANSFORM
     movapd xmm6, xmm0
     movsd xmm1, [one]
     OP O_SUBSD
@@ -163,6 +172,7 @@ math_log:
     movapd xmm1, xmm0
     OP O_MULSD
     movapd xmm7, xmm0
+    TRACE_SET trace_stage, ST_LOG_POLYNOMIAL
     lea r13, [log_coeff]
     movsd xmm0, [r13]
     mov ebx, 1
@@ -174,6 +184,7 @@ math_log:
     inc ebx
     cmp ebx, 13
     jb .horner
+    TRACE_SET trace_stage, ST_LOG_RECONSTRUCT
     movsd xmm1, [rsp]
     OP O_MULSD
     movsd xmm1, [two]
@@ -195,6 +206,11 @@ math_log:
 ; Integer scalar exponentiation by squaring. 0^0 is defined as 1.
 math_power:
     FRAME 16
+    TRACE_SET trace_stage, ST_POWER
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_rows, 1
+    TRACE_SET trace_cols, 1
+    TRACE_SET trace_lanes, 1
     movsd [rsp], xmm0
     movapd xmm2, xmm1
     andpd xmm2, [abs_mask]

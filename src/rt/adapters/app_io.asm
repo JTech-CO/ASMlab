@@ -185,3 +185,20 @@ rt_input_gets:
     xor eax, eax
     DONE
 section .note.GNU-stack noalloc noexec nowrite progbits
+
+; TUI only: consume already buffered input without making a syscall or changing EOF.
+; RAX=byte0..255, -1=no pending byte. Same Reader as canonical REPL/replay.
+section .text
+global rt_input_try_byte
+rt_input_try_byte:
+    mov rcx, [stdin_reader+RT_R_POS]
+    cmp rcx, [stdin_reader+RT_R_END]
+    jae .empty
+    lea rdx, [stdin_reader+RT_R_BUF]
+    movzx eax, byte [rdx+rcx]
+    inc rcx
+    mov [stdin_reader+RT_R_POS], rcx
+    ret
+.empty:
+    mov rax, -1
+    ret

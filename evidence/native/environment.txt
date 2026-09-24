@@ -1,8 +1,7 @@
-v0.4.0 local environment (host glibc does not imply an application dependency)
 $ uname -a
-Linux aae4f0332658 6.18.44 #1 SMP Tue Sep 22 17:26:16 UTC 2026 x86_64 GNU/Linux
+Linux 6b7463ef2a52 6.18.44 #1 SMP Tue Sep 22 17:26:16 UTC 2026 x86_64 GNU/Linux
 
-$ /mnt/data/asmlab_tools/linux-x64/bin/nasm -v
+$ /mnt/data/toolchain/linux-x64/bin/nasm --version
 NASM version 2.16.03 compiled on Sep 18 2026
 
 $ ld --version
@@ -12,14 +11,19 @@ This program is free software; you may redistribute it under the terms of
 the GNU General Public License version 3 or (at your option) a later version.
 This program has absolutely no warranty.
 
-$ python3 --version
-Python 3.13.5
-
-$ gcc --version
-gcc (Debian 14.2.0-19) 14.2.0
+$ cc --version
+cc (Debian 14.2.0-19) 14.2.0
 Copyright (C) 2024 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-toolchain_zip_sha256 270ad7b412006b9db4d57bb280aa1f044341a1509c9e219373ef1b81fe5238d5
+$ /usr/bin/python3 --version
+Python 3.13.5
+
+$ ldd --version
+ldd (Debian GLIBC 2.41-12+deb13u3) 2.41
+Copyright (C) 2024 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Written by Roland McGrath and Ulrich Drepper.

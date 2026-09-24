@@ -1,0 +1,194 @@
+{
+  "baseline": "ASMlab v0.4.0",
+  "version": "0.5.0",
+  "baseline_zip_sha256": "4423ee23b7f0a2c9b777c0ca48349ba6f76f802a8c317321d546ef30c6a91c26",
+  "files": [
+    {
+      "path": "include/abi.inc",
+      "before_sha256": "1e7ef248b975ded63e590571fd46656fab7e4ce7f2d398aa132e8f94679d89b5",
+      "after_sha256": "1e7ef248b975ded63e590571fd46656fab7e4ce7f2d398aa132e8f94679d89b5",
+      "identical": true
+    },
+    {
+      "path": "include/core.inc",
+      "before_sha256": "8eac174b6b54c76bb0d1d950fee6fe5dbd76f6ea002a54173e4735680abbf98c",
+      "after_sha256": "17a670eaf9ae495917c5411499a4d365246336523b00ce6e730f132aea00291a",
+      "identical": false
+    },
+    {
+      "path": "include/layout.inc",
+      "before_sha256": "0ff2c275fea8887cbe1ad827f9664b25b1fd3178c318d220ee71a3a1148e931b",
+      "after_sha256": "39e3e0888ebc54f5ab4f755bdfb4351093180ede1511492684911cb8669898a4",
+      "identical": false
+    },
+    {
+      "path": "include/rt/api.inc",
+      "before_sha256": "211dea2038615b1932ae13405ec2de5b8b7246c861f07e276bf53531ced01c13",
+      "after_sha256": "cf354b92a718713d1545b75b151e58edda4bbb747871ad379cc4d7bceb57eef4",
+      "identical": false
+    },
+    {
+      "path": "include/rt/biguint.inc",
+      "before_sha256": "9617af6f64845559d428a87f0a7e07e9a915ebd292a9cc7f7fbca892e9c03c38",
+      "after_sha256": "9617af6f64845559d428a87f0a7e07e9a915ebd292a9cc7f7fbca892e9c03c38",
+      "identical": true
+    },
+    {
+      "path": "include/rt/foundation.inc",
+      "before_sha256": "478154c2e188143c22df132c9e2d8d28bd2c7df9c67f74a505eab4ddc981cce1",
+      "after_sha256": "478154c2e188143c22df132c9e2d8d28bd2c7df9c67f74a505eab4ddc981cce1",
+      "identical": true
+    },
+    {
+      "path": "src/asmlab.asm",
+      "before_sha256": "148ed08ba3eb28f44c40a41ce6fd22cd2e70f006794770c58c13ef36e948e654",
+      "after_sha256": "fdd0a215c654756ba9123b8c8b3644b5f803ba51ccd4a22f7f8932984ac81c85",
+      "identical": false
+    },
+    {
+      "path": "src/core_storage.asm",
+      "before_sha256": "e40d286371b9eee5b34a9cd9f878a306b066c474323febcc3ceb026f64db95b9",
+      "after_sha256": "e40d286371b9eee5b34a9cd9f878a306b066c474323febcc3ceb026f64db95b9",
+      "identical": true
+    },
+    {
+      "path": "src/evaluator.asm",
+      "before_sha256": "b5eb76c647b09e4ce94257a86727c3c3dde0a470c69df98ea4daf19ee4b014f1",
+      "after_sha256": "a9904649faac88e7688f9ed4b6a17f342b8a2dea8400e545261a5acd976afd29",
+      "identical": false
+    },
+    {
+      "path": "src/kernels.asm",
+      "before_sha256": "e539cca3bd6c19007f69eb5bb7ffbe049a7e6769f244985a3e7ea58679a0df04",
+      "after_sha256": "1e7021728221875c38057b0f00502786e7ab3c7fa9e9067eb6b30d4b58e47a59",
+      "identical": false
+    },
+    {
+      "path": "src/main.asm",
+      "before_sha256": "a91507af8b83e37f3b14fff163db11ae87164bd24d301fb42024710161e34bac",
+      "after_sha256": "9e0d2aff42817d27698e1863e6cf928d2da8ea73f24bd1bb437b78f3b04cfdbf",
+      "identical": false
+    },
+    {
+      "path": "src/math.asm",
+      "before_sha256": "6a5c4b91aad5ce00a805a29b8b4fc7bd3287239cd831440e5b4133c78066c470",
+      "after_sha256": "7fb830ac94f5315210209174953d389678b184c142bb9d8bd34687694fa6a74f",
+      "identical": false
+    },
+    {
+      "path": "src/parser.asm",
+      "before_sha256": "ac6307a5fa4f34989230e5f0961188883d3be5eaff54d4f3ecbc0868a056263a",
+      "after_sha256": "8601af4e1f0fead3548ef5270e6572f73f6ce10ac6cb39ea498d1313a11ad5a4",
+      "identical": false
+    },
+    {
+      "path": "src/platform/linux/app_start.asm",
+      "before_sha256": "e3f2e6a153f4f8d43b946cc55db37aac187ee8480c1d4cdab2e27d627915c437",
+      "after_sha256": "e3f2e6a153f4f8d43b946cc55db37aac187ee8480c1d4cdab2e27d627915c437",
+      "identical": true
+    },
+    {
+      "path": "src/platform/linux/start.asm",
+      "before_sha256": "66cc0ead096b373fdf898303e4a22d304704b03e3c8d15580505921e4c69d3a3",
+      "after_sha256": "66cc0ead096b373fdf898303e4a22d304704b03e3c8d15580505921e4c69d3a3",
+      "identical": true
+    },
+    {
+      "path": "src/platform/linux/syscalls.asm",
+      "before_sha256": "287cdda136cbf87861668da330f94e9aefdba1b2410b2bc0c85dde835770087c",
+      "after_sha256": "287cdda136cbf87861668da330f94e9aefdba1b2410b2bc0c85dde835770087c",
+      "identical": true
+    },
+    {
+      "path": "src/platform/linux/virtual_memory.asm",
+      "before_sha256": "d706de9ee1189acc0c1610b93a1090859e63d299cef5be27434eb14bc97f4a6b",
+      "after_sha256": "d706de9ee1189acc0c1610b93a1090859e63d299cef5be27434eb14bc97f4a6b",
+      "identical": true
+    },
+    {
+      "path": "src/rt/adapters/app_io.asm",
+      "before_sha256": "08b6851a8cca38932e4809661ec1a3e13ca29d90a687f62543d69f45cd82bedb",
+      "after_sha256": "4868732bd3921935ae475a438b4a23cc250a2166944595debae2fa3d6f50efa9",
+      "identical": false
+    },
+    {
+      "path": "src/rt/adapters/libc_io.asm",
+      "before_sha256": "bb51c212d39f9668d76bd077489afdb7516b218bf7d336571f870ff699efd4c9",
+      "after_sha256": "bb51c212d39f9668d76bd077489afdb7516b218bf7d336571f870ff699efd4c9",
+      "identical": true
+    },
+    {
+      "path": "src/rt/biguint.asm",
+      "before_sha256": "fc049d9c6e50dad2cfbed36f6c6908ef7518644ad94290a627cfcd3a13b0fb6d",
+      "after_sha256": "fc049d9c6e50dad2cfbed36f6c6908ef7518644ad94290a627cfcd3a13b0fb6d",
+      "identical": true
+    },
+    {
+      "path": "src/rt/console_format.asm",
+      "before_sha256": "37ac4e182e2f768c3f965d6e09e0045af1e89158d7f5014291a226af11c7a4ad",
+      "after_sha256": "37ac4e182e2f768c3f965d6e09e0045af1e89158d7f5014291a226af11c7a4ad",
+      "identical": true
+    },
+    {
+      "path": "src/rt/decimal_format.asm",
+      "before_sha256": "09b7e71dd4947f3446aaf276037d9ebb84a0eedc8971ebeb7220afa2cae2929f",
+      "after_sha256": "09b7e71dd4947f3446aaf276037d9ebb84a0eedc8971ebeb7220afa2cae2929f",
+      "identical": true
+    },
+    {
+      "path": "src/rt/decimal_parse.asm",
+      "before_sha256": "9c7c04de449b636d457af30b5b3f5b5321077a5a71dd8e4e832a1f7d8e1532d8",
+      "after_sha256": "9c7c04de449b636d457af30b5b3f5b5321077a5a71dd8e4e832a1f7d8e1532d8",
+      "identical": true
+    },
+    {
+      "path": "src/rt/dynamic_memory.asm",
+      "before_sha256": "b1540d0721dc62eb5ca55dcb9c31c45ee274a90ab80fb9204bfc8fa53606e9fd",
+      "after_sha256": "b1540d0721dc62eb5ca55dcb9c31c45ee274a90ab80fb9204bfc8fa53606e9fd",
+      "identical": true
+    },
+    {
+      "path": "src/rt/fd_io.asm",
+      "before_sha256": "8693d94c0744a25a63a013540268c3fee1596335e31ad8942d0d964f2ea434ed",
+      "after_sha256": "8693d94c0744a25a63a013540268c3fee1596335e31ad8942d0d964f2ea434ed",
+      "identical": true
+    },
+    {
+      "path": "src/rt/integer.asm",
+      "before_sha256": "3f745f887161b72deb96938aad76bf648b8bb48e917f5160721036dbd3862a33",
+      "after_sha256": "3f745f887161b72deb96938aad76bf648b8bb48e917f5160721036dbd3862a33",
+      "identical": true
+    },
+    {
+      "path": "src/rt/primitives.asm",
+      "before_sha256": "c319e76372ee4861ceaadbfdf2cd866917a4d9ab3a327c38abdf9b6af490a74d",
+      "after_sha256": "c319e76372ee4861ceaadbfdf2cd866917a4d9ab3a327c38abdf9b6af490a74d",
+      "identical": true
+    },
+    {
+      "path": "src/runtime.asm",
+      "before_sha256": "2005f6bc24fda81e1cfc550379d00d48472f83672e2b89e87f552504bbc2ad1e",
+      "after_sha256": "9b5252256dcfab1500ab1fff0302a0ccfa1d0978efd8fd2f5fddbcbb78fce46e",
+      "identical": false
+    },
+    {
+      "path": "src/view.asm",
+      "before_sha256": "93ea127aa6ac6c0e86f4e363ce5907a7e5d3719ee79b7a1d3895310e983a8157",
+      "after_sha256": "332e6666a684fe220d25c141d962d8b2fe0315c4ae0ea5e800ab8a556898e889",
+      "identical": false
+    },
+    {
+      "path": "src/workspace_functions.asm",
+      "before_sha256": "2b05815771d2f201d9ddd239615212b6a31fedfb2d8a7b318b1a6020f7f730bf",
+      "after_sha256": "6259ac2ea2635a92a8ce202da52f1c6fc161603f97d2514e3b2ac31ee19b8d24",
+      "identical": false
+    }
+  ],
+  "added": [
+    "include/observation.inc",
+    "src/platform/linux/terminal.asm",
+    "src/trace_v2.asm",
+    "src/workbench.asm"
+  ],
+  "scope": "Numerical source templates have instrumentation/specialization edits; arithmetic coefficients/order are validated, not claimed byte-identical. Own primitives/decimal/allocator stay unchanged."
+}

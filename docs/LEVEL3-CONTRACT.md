@@ -1,8 +1,8 @@
-# ASMlab L3-Core contract - v0.4.0
+# ASMlab L3-Core contract - v0.5.0
 
 **Implemented for the complete production application on Linux x86-64.** Level 3 is a project boundary, not an external certification.
 
-| Boundary | v0.4.0 |
+| Boundary | v0.5.0 |
 |---|---|
 | Application sources | Project NASM `.asm` / `.inc` only |
 | Entry/exit | Own `_start`, host initialization, main, final flush, exit_group |
@@ -24,4 +24,6 @@ L3-Core does not mean an operating system, a MATLAB clone, unlimited dynamic sto
 
 [Verification](VERIFICATION.md) · [Runtime ABI](RUNTIME-ABI.md) · [Future Pi/web plan](plans/RASPBERRY-PI5-SERVER-PLAN-KR.md)
 
-Dynamic Workspace uses own NASM `mmap/munmap` wrappers, descriptors and ownership; no libc allocator was reintroduced. Thirteen project objects are linked in production. Arrays and user symbols are now dynamic but bounded by quotas and documented shape/work limits.
+Dynamic Workspace uses own NASM `mmap/munmap` wrappers, descriptors and ownership; no libc allocator was reintroduced. Fourteen project objects are linked in production. Arrays and user symbols are now dynamic but bounded by quotas and documented shape/work limits.
+
+The optional native Workbench is also NASM-only and uses Linux termios/signal/poll syscalls, not ncurses or another UI runtime. Compute is statically generated at build time and requests no executable heap mapping. Source history and Trace v2 do not create a network or remote execution service.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 - Observable Workbench (2026-09-24)
+
+- Added NASM build-time Observe/Compute specialization. Compute uses inline SSE2, with no capture/scratch/central opcode dispatcher. Arithmetic order/coefficient tables, dynamic storage and L3 runtime boundaries are preserved.
+- Added `--mode observe|compute`, `:mode observe|compute`, `--trace-json`, `:trace json`, `--workbench`, `:workbench`. JSON/quiet now default to Compute; `:trace off` aliases Compute. Mode changes affect only future execution.
+- Added Trace v2: source spans/AST links, expression/source build identity, algorithm stages, matrix context, active vs hardware lanes, real PC/XMM/MXCSR and explicit truncated-prefix counts. One-line JSON export includes full result. No file loader is implied.
+- Added own native linked terminal UI: AST/instruction/value selection, raw bits, stage search, matrix viewport, bounded ASCII editor and64-source session history. Completed node values are distinguished from captured instruction state.
+- Added own Linux terminal host, alternate screen, shared pre-read stdin handling, resize, safe-boundary handled termination and suspend/resume with saved termios restoration. No ncurses/libc/CRT added.
+- Prevented expired temporary-Value access after evaluation errors in display and navigation; tested prior ans preservation and subsequent execution.
+- Added native code-region audits, mode/FP parity, source/PC/raw trace tests, PTY navigation/edit/error/signal tests and build-ID/terminal-object/macro fail-closed guards. Added explicit Observe replay of the numerical corpus on both profiles.
+- Preserved classic REPL and canonical `:replay`, existing limits/definitions, and ARM/Pi/web/graph planning documents without implementation.
+- Remote CI configuration updated, not remotely executed by the local delivery. See `docs/VERIFICATION.md` for actual scope/counts.
 
 ## v0.4.0 - Dynamic Workspace (2026-09-24)
 

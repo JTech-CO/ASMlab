@@ -1,4 +1,4 @@
-# ASMlab 0.4.0 language reference
+# ASMlab 0.5.0 language reference
 
 ## Data model
 
@@ -73,23 +73,27 @@ Matrix products preflight `m*n*k <= 16,777,216`. There is no whole-session CPU-t
 | `:memory` | Report used/peak/quota/live/maps/unmaps/user_variables; JSON mode has a `memory` record |
 | `:quit`, `:exit` | End the session |
 | `:trace on` | Capture subsequent expressions and show six-frame previews |
-| `:trace off` | Disable retention for subsequent expressions |
+| `:trace off` | Select Compute (no capture/central SSE2 dispatch) for subsequent expressions |
 | `:trace all` | Capture and display all retained frames for subsequent expressions |
 | `:bits on`, `:bits off` | Toggle raw register bit presentation |
 | `:step on`, `:step off` | Toggle automatic post-evaluation replay |
 | `:replay` | Replay the most recent successful retained capture |
+| `:mode observe`, `:mode compute` | Select the next execution mode without relabeling the current snapshot |
+| `:trace json` | Export the current successful snapshot as Trace v2 JSON |
+| `:workbench` | Native linked terminal workbench; q returns to REPL |
 
-Commands operate on the current process only; workspace values are not saved across separate invocations. `-f` loads an expression script, not a serialized workspace. There is no save/load command or filesystem write operation in the language.
+Commands operate on the current process only; workspace values are not saved across separate invocations. `-f` loads an expression script, not a serialized workspace. There is no workspace save/load or trace import. Trace JSON can be written with shell redirection; it is not an automatically restored workspace.
 
 ## CLI and output
 
 ```text
 asmlab [--quiet|--json] [--all] [--bits] [--step]
        [--color|--no-color] [--memory-mib N] [-e EXPRESSION | -f FILE]
+       [--mode observe|compute] [--trace-json] [--workbench]
 asmlab --help | --version
 ```
 
-`--all` expands the printed trace limit but does not override quiet/JSON output. `--bits` controls raw-bit display. `--step` requires a real terminal to replay and does not consume batch expressions as navigation input. `--json` emits result/error JSON records, not traces. Interactive display commands can produce plain text, so do not mix them into a machine-output script.
+`--all` expands the printed trace limit but does not override quiet/JSON output. `--bits` controls raw-bit display. `--step` requires a real terminal to replay and does not consume batch expressions as navigation input. `--json` emits result/error JSON records, not traces; it defaults to Compute. `--quiet` also defaults to Compute. `--trace-json` emits Trace v2 and defaults to Observe. Explicit `--mode` overrides these defaults. Interactive display commands can produce plain text, so do not mix them into a machine-output script.
 
 A successful record contains `ok`, `rows`, `cols`, and row-major `data`. An error contains `ok:false`, a static `error` message, and a source-byte `position`. Exit status 0 means no reported error, 1 means at least one expression/command error, and 2 means invalid CLI usage or input-file I/O failure. Errors are written to the same output stream as results; JSON users should parse the `ok` field.
 
@@ -100,3 +104,7 @@ A successful record contains `ok`, `rows`, `cols`, and row-major `data`. An erro
 Successful assignment stages a new target and `ans` before replacing either. Allocation/evaluation failure preserves prior persistent state; previous temporary/trace state is invalidated by starting a new expression. Output errors after a successful commit do not undo that commit. `B=A` is a deep copy. `:clear` frees both temporary and persistent mappings; peak/cumulative counters are not reset.
 
 Large tables preview at most16×16 with an explicit message. Quiet/JSON values are complete, not silently truncated. JSON `:memory` records do not contain `ok` because they are metadata rather than expressions. Colon display commands such as `:vars` remain human-readable; only mix documented machine-safe commands into JSON scripts.
+
+## Workbench-specific behavior
+
+See [Workbench](OBSERVABLE-WORKBENCH-KR.md). Values in the pane are completed node values, not partial replay matrices. The native TUI uses8-digit decimal previews or raw64-bit hex. Source history is64 entries and replay never reuses an old workspace. Handled terminal signals exit with128+signal at a UI boundary; default signals outside the TUI retain prior behavior. Editor capacity ignores extra insertion bytes with a visible notice; this interactive editing rule is separate from whole-line rejection in batch input.

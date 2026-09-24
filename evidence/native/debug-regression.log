@@ -1,4 +1,4 @@
-$ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.4.0/bin/asmlab-debug --report /mnt/data/ASMlab-v0.4.0/build/evidence/native/debug-regression.json
+$ /usr/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.5.0/bin/asmlab-debug --report /mnt/data/ASMlab-v0.5.0/build/evidence/native/debug-regression.json
 {
   "case_count": 14410,
   "failure_count": 0,
@@ -31,5 +31,5 @@ $ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.4.0/bin/asmlab-deb
     "pty_replay": 4,
     "io_cli": 4
   },
-  "elapsed_seconds": 0.28
+  "elapsed_seconds": 1.321
 }

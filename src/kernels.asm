@@ -1,3 +1,4 @@
+%ifndef COMPUTE_BUILD
 ; Trace ABI: edi=opcode, xmm0=lhs/destination, xmm1=rhs/source.
 ; Preserves xmm1..xmm15 and all GP registers except rax, rdx, r10, r11.
 ; No libc call occurs between a watched instruction and its register capture.
@@ -18,6 +19,7 @@ op_names: dq 0, op_addsd, op_subsd, op_mulsd, op_divsd, op_sqrtsd
           dq op_addpd, op_subpd, op_mulpd, op_divpd, op_sqrtpd, op_movapd, op_xorpd
 section .text
 exec_sse:
+    inc qword [dispatch_entries]
     lea r11, [trace_scratch]
     cmp qword [trace_enabled], 0
     je .capture
@@ -36,6 +38,37 @@ exec_sse:
     mov [r11+16], rax
     movupd [r11+32], xmm0
     movupd [r11+48], xmm1
+    mov rax, [trace_total]
+    mov [r11+TR_SEQ], rax
+    mov rax, [expression_serial]
+    mov [r11+TR_EXPR], rax
+    mov rax, [trace_node]
+    imul rax, NS
+    lea rdx, [nodes+rax]
+    mov rax, [rdx+N_ID]
+    mov rax, [node_starts+rax*8]
+    mov [r11+TR_START], rax
+    mov rax, [rdx+N_END]
+    mov [r11+TR_END], rax
+    mov rax, [trace_stage]
+    mov [r11+TR_STAGE], rax
+    mov rax, [trace_kind]
+    mov [r11+TR_KIND], rax
+    mov rax, [trace_k]
+    mov [r11+TR_K], rax
+    mov rax, [trace_lanes]
+    mov [r11+TR_ACTIVE], rax
+    mov rax, [trace_rows]
+    mov [r11+TR_ROWS], rax
+    mov rax, [trace_cols]
+    mov [r11+TR_COLS], rax
+    mov eax, 1
+    cmp edi, O_ADDPD
+    jb .hw_lanes
+    mov eax, 2
+.hw_lanes:
+    mov [r11+TR_HWLANES], rax
+    mov qword [r11+TR_SCHEMA], 2
     mov qword [r11+88], 0
     stmxcsr [r11+88]
     cmp edi, O_ADDSD
@@ -125,6 +158,8 @@ exec_sse.after:
     stmxcsr [r11+80]
     ret
 
+%endif
+
 ; Scalar broadcast or same-shaped elementwise binary operation.
 elementwise:
     FRAME 48
@@ -196,40 +231,51 @@ elementwise:
 .opmul:
     mov r15d, O_MULSD
 .begin:
+    TRACE_SET trace_stage, ST_ELEMENTWISE
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SHAPE r14
+    cmp r15d, O_ADDSD
+    je .add_loop
+    cmp r15d, O_SUBSD
+    je .sub_loop
+    cmp r15d, O_MULSD
+    je .mul_loop
+    jmp .div_loop
+%macro EW_LOOP 1
     xor ebx, ebx
-.loop:
-    mov [trace_element], rbx
+%%loop:
+    TRACE_SET trace_element, rbx
     mov rax, [rsp+16]
     sub rax, rbx
     cmp rax, 2
-    jb .tail
+    jb %%tail
     cmp qword [rsp], 1
-    je .broadcast_a
+    je %%broadcast_a
     mov r10, [r12+V_DATA]
     movupd xmm0, [r10+rbx*8]
-    jmp .load_b
-.broadcast_a:
+    jmp %%load_b
+%%broadcast_a:
     mov r10, [r12+V_DATA]
     movsd xmm0, [r10]
     unpcklpd xmm0, xmm0
-.load_b:
+%%load_b:
     cmp qword [rsp+8], 1
-    je .broadcast_b
+    je %%broadcast_b
     mov r10, [r13+V_DATA]
     movupd xmm1, [r10+rbx*8]
-    jmp .packed
-.broadcast_b:
+    jmp %%packed
+%%broadcast_b:
     mov r10, [r13+V_DATA]
     movsd xmm1, [r10]
     unpcklpd xmm1, xmm1
-.packed:
-    lea rdi, [r15+5]
-    call exec_sse
+%%packed:
+    TRACE_SET trace_lanes, 2
+    OP (%1+5)
     mov r10, [r14+V_DATA]
     movupd [r10+rbx*8], xmm0
     add rbx, 2
-    jmp .loop
-.tail:
+    jmp %%loop
+%%tail:
     test rax, rax
     jz .return
     xor eax, eax
@@ -242,10 +288,21 @@ elementwise:
     cmovne rax, rbx
     mov r10, [r13+V_DATA]
     movsd xmm1, [r10+rax*8]
-    mov rdi, r15
-    call exec_sse
+    TRACE_SET trace_lanes, 1
+    OP %1
     mov r10, [r14+V_DATA]
     movsd [r10+rbx*8], xmm0
+    jmp .return
+%endmacro
+.add_loop:
+    EW_LOOP O_ADDSD
+.sub_loop:
+    EW_LOOP O_SUBSD
+.mul_loop:
+    EW_LOOP O_MULSD
+.div_loop:
+    EW_LOOP O_DIVSD
+%unmacro EW_LOOP 1
 .return:
     mov rax, r14
     DONE
@@ -289,6 +346,8 @@ matmul:
     test rax, rax
     jz .fail
     mov r14, rax
+    TRACE_SHAPE r14
+    TRACE_SET trace_kind, KIND_MATMUL
     mov qword [rsp+8], 0
 .row:
     mov rax, [rsp+8]
@@ -302,11 +361,13 @@ matmul:
     mov rcx, [rsp+8]
     imul rcx, [r13+8]
     add rcx, rax
-    mov [trace_element], rcx
+    TRACE_SET trace_element, rcx
     mov [rsp+24], rcx
     xor ebx, ebx
     pxor xmm4, xmm4
 .pair:
+    TRACE_SET trace_k, rbx
+    TRACE_SET trace_lanes, 2
     lea rax, [rbx+1]
     cmp rax, [rsp]
     jae .reduce
@@ -323,14 +384,19 @@ matmul:
     add rax, [r13+8]
     mov r10, [r13+V_DATA]
     movhpd xmm1, [r10+rax*8]
+    TRACE_SET trace_stage, ST_DOT_PRODUCT
     OP O_MULPD
     movapd xmm1, xmm0
     movapd xmm0, xmm4
+    TRACE_SET trace_stage, ST_DOT_ACCUMULATE
     OP O_ADDPD
     movapd xmm4, xmm0
     add rbx, 2
     jmp .pair
 .reduce:
+    TRACE_SET trace_lanes, 1
+    TRACE_SET trace_k, -1
+    TRACE_SET trace_stage, ST_DOT_REDUCE
     movapd xmm0, xmm4
     movapd xmm1, xmm4
     unpckhpd xmm1, xmm1
@@ -348,9 +414,12 @@ matmul:
     add rax, [rsp+16]
     mov r10, [r13+V_DATA]
     movsd xmm1, [r10+rax*8]
+    TRACE_SET trace_stage, ST_DOT_PRODUCT
+    TRACE_SET trace_k, rbx
     OP O_MULSD
     movapd xmm1, xmm0
     movapd xmm0, xmm4
+    TRACE_SET trace_stage, ST_DOT_ACCUMULATE
     OP O_ADDSD
     movapd xmm4, xmm0
 .store:
@@ -385,6 +454,10 @@ transpose_value:
     test rax, rax
     jz .return
     mov r13, rax
+    TRACE_SHAPE r13
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_stage, ST_TRANSPOSE
+    TRACE_SET trace_lanes, 1
     xor r14d, r14d
 .row:
     cmp r14, [r12]
@@ -402,7 +475,7 @@ transpose_value:
     mov rbx, r15
     imul rbx, [r12]
     add rbx, r14
-    mov [trace_element], rbx
+    TRACE_SET trace_element, rbx
     OP O_MOVAPD
     mov r10, [r13+V_DATA]
     movsd [r10+rbx*8], xmm0
@@ -426,11 +499,14 @@ negate_value:
     test rax, rax
     jz .return
     mov r13, rax
+    TRACE_SHAPE r13
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_stage, ST_NEGATE
     mov r14, [r12]
     imul r14, [r12+8]
     xor ebx, ebx
 .loop:
-    mov [trace_element], rbx
+    TRACE_SET trace_element, rbx
     mov rax, r14
     sub rax, rbx
     cmp rax, 2
@@ -438,6 +514,7 @@ negate_value:
     mov r10, [r12+V_DATA]
     movupd xmm0, [r10+rbx*8]
     movupd xmm1, [sign_mask]
+    TRACE_SET trace_lanes, 2
     OP O_XORPD
     mov r10, [r13+V_DATA]
     movupd [r10+rbx*8], xmm0
@@ -449,6 +526,7 @@ negate_value:
     mov r10, [r12+V_DATA]
     movsd xmm0, [r10+rbx*8]
     movsd xmm1, [sign_mask]
+    TRACE_SET trace_lanes, 1
     OP O_XORPD
     mov r10, [r13+V_DATA]
     movsd [r10+rbx*8], xmm0

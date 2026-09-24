@@ -1,10 +1,10 @@
-# v0.4.0 toolchain provenance
+# v0.5.0 toolchain provenance
 
 Recorded for the local release build on 2026-09-24 (Asia/Seoul). These records identify the actual build tool and inputs; they are not a supply-chain security certification.
 
 ## How NASM was obtained
 
-This build reused the toolchain ZIP attached during v0.1.1. Its ZIP and executable SHA256 were checked again. The earlier delivery obtained this **third-party prebuilt NASM executable** through a read-only public GitHub Actions artifact download from `holepunchto/nasm-runtime`. No new toolchain workflow was executed for v0.4.0. It was not an official NASM release binary and was not rebuilt from official NASM sources in this environment.
+This build reused the toolchain ZIP attached during v0.1.1. Its ZIP and executable SHA256 were checked again. The earlier delivery obtained this **third-party prebuilt NASM executable** through a read-only public GitHub Actions artifact download from `holepunchto/nasm-runtime`. No new toolchain workflow was executed for v0.5.0. It was not an official NASM release binary and was not rebuilt from official NASM sources in this environment.
 
 | Item | Exact value |
 |---|---|
@@ -28,7 +28,7 @@ The inspected CMake file installs `nasm` and `ndisasm` supplied through `find_po
 
 ## ASMlab build inputs
 
-The full production application links thirteen separately generated NASM objects directly with GNU ld, `-static --no-undefined -e _start`. No CRT, system archive or shared library is a production input. GCC/cc remains a linker driver only for development comparison targets. The independent smoke also uses ld; `decimal-native.so` and primitive/fault fixtures have no libc imports. The test `decimal-adapter.so` intentionally retains libc. No project C/C++ source compilation is performed.
+The full production application links fourteen separately generated NASM objects directly with GNU ld, `-static --no-undefined -e _start`. No CRT, system archive or shared library is a production input. GCC/cc remains a linker driver only for development comparison targets. The independent smoke also uses ld; `decimal-native.so` and primitive/fault fixtures have no libc imports. The test `decimal-adapter.so` intentionally retains libc. No project C/C++ source compilation is performed.
 
 - Release: NASM `-f elf64 -w+error -Ox`.
 - Debug: NASM `-f elf64 -w+error -O0 -g -F dwarf`.
@@ -38,10 +38,12 @@ The full production application links thirteen separately generated NASM objects
 
 [Release sidecar](../bin/asmlab.build.json) and [debug sidecar](../bin/asmlab-debug.build.json) record the exact command arrays, tool versions, binary/object/map SHA256 and build-input hashes. Build completion is not test completion; [native gate](../evidence/native/gate-summary.json) is separate.
 
-The default build/test path cannot automatically fall back to GNU as. The old bridge remains historical source but is unsupported by the v0.4.0 multi-object build; `make validate-gas` explicitly fails. `make verify` checks delivered source inventories, binaries, objects and link maps; `make test` creates a new native build before testing.
+The default build/test path cannot automatically fall back to GNU as. The old bridge remains historical source but is unsupported by the v0.5.0 multi-object build; `make validate-gas` explicitly fails. `make verify` checks delivered source inventories, binaries, objects and link maps; `make test` creates a new native build before testing.
 
 ## Environment and limits
 
 Actual environment details are captured in [environment.txt](../evidence/native/environment.txt). These are local container results. The configured Ubuntu 22.04/24.04 workflow has not been remotely run by this delivery. No official build attestation, cross-toolchain byte-identical reproducibility, WSL/Pi execution, or all-input numerical proof is claimed.
 
 [Foundation object/target provenance](../bin/runtime-foundation.build.json) records exact target membership. Selected `.o` and `.map` files are included in the verification ZIP so checks can be repeated without NASM. They can be regenerated with `make test`.
+
+Trace v2 embeds a deterministic source-input hash plus profile/backend, recorded as `source_build_id`. This is not the ELF build ID or a signature. Gate validation recomputes it independently and checks file/object hashes. The local toolchain ZIP and executable digests were verified again for this delivery.

@@ -1,69 +1,66 @@
-# ASMlab 0.4.0 - Dynamic Workspace
+# ASMlab 0.5.0 - Observable Workbench
 
-**Expression → AST → actual assembly instruction → SIMD registers → result.** NASM x86-64 numerical computing with a libc/CRT-free production runtime.
+**Expression → AST → real assembly instructions → SIMD register state → result.** A NASM-only numerical computing application, with a native interactive terminal workbench.
 
-[한국어](README-KR.md) · [Changes](CHANGELOG.md) · [Dynamic Workspace](docs/DYNAMIC-WORKSPACE-KR.md) · [Verification](docs/VERIFICATION.md)
+[한국어](README-KR.md) · [Workbench guide (KR)](docs/OBSERVABLE-WORKBENCH-KR.md) · [Trace v2](docs/TRACE-V2.md) · [Verification](docs/VERIFICATION.md) · [Changelog](CHANGELOG.md)
 
-## What's new
+![Real captured terminal cells](docs/workbench-demo.png)
 
-Fixed inline16×16 values are replaced by 64-byte descriptors and quota-accounted anonymous mappings. Temporary evaluation arenas and persistent symbols have separate lifetimes. Assignment stages both the target and `ans` before committing; failed evaluation/allocation preserves both previous values. Symbols are dynamically linked rather than limited to63 users.
-
-```text
-A = ones(32,48)
-B = A
-A = A + 2
-B(32,48)
-A(32,48)
-x = linspace(-10,10,1001)
-y = sin(x)
-size(y)
-:memory
-:drop B
-:clear
-```
-
-`B(32,48)` is1; `A(32,48)` is3. Indexing is **1-based, exactly two scalar indexes, read-only and named-variable only**. Internal table coordinates remain explicitly zero-based. No slices, indexed assignment, empty matrices, block concatenation or MATLAB compatibility is implied.
-
-| API | Meaning |
-|---|---|
-| `zeros(n[,m])`, `ones(n[,m])` | n×n or n×m dense arrays |
-| `eye(n[,m])` | square/rectangular diagonal ones |
-| `size(A)` / `size(A,1|2)` | 1×2 shape / scalar dimension |
-| `linspace(a,b,n)` | 1×n samples; n=1 returns b; endpoint bits copied |
-| `A(row,col)` | scalar read from a named variable |
-| `--memory-mib N` | quota1..1024 MiB; default64 MiB |
-| `:memory` / `:drop NAME` / `:clear` | inspect allocations / delete user symbol / release dynamic values |
-
-## Run / build
+## Run
 
 ```sh
 chmod +x bin/asmlab bin/asmlab-debug
-./bin/asmlab
-./bin/asmlab --json -e 'size(ones(32,48))'
-./bin/asmlab --bits -e 'linspace(-1,1,5)'
-./bin/asmlab -f examples/dynamic-workspace.asmlab
+./bin/asmlab --workbench -e 'sqrt([1,4,9,16])+2'
+./bin/asmlab --mode compute --json -e 'sum(sin(linspace(-3,3,8192)))'
+./bin/asmlab --trace-json -e 'sin(pi/4)' > trace.json
+```
 
-# Debian/Ubuntu x86-64 native development environment
+Native Linux x86-64 static ELF; no libc, CRT, libm, BLAS, LAPACK, ncurses, Python or JavaScript at runtime. WSL2 Linux is a target, not separately tested hardware. No Windows EXE, ARM/Pi backend, web UI, server or plotting was added.
+
+## Execution and observation
+
+**Observe** runs actual watched SSE2 instructions and captures raw XMM/MXCSR before/after them. **Compute** is a build-time specialization of the same algorithms, using inline SSE2 with no capture/scratch or central `exec_sse` dispatch. It still parses, validates and allocates normally. This is not a JIT or a promise to outperform optimized BLAS.
+
+Interactive/plain output defaults to Observe; JSON/quiet to Compute; `--trace-json` to Observe. Explicit `--mode` wins. `:trace off` now selects Compute; `:trace on/all` select Observe. Mode changes affect the next expression, not the identity of an existing snapshot.
+
+Trace v2 provides escaped source text, byte spans, AST links/shapes, algorithm stages, actual instruction PC, context coordinates, active vs hardware lanes, exact register bits, MXCSR, source build ID, and honest capture counts. Only the first8192 watched instructions are retained. Compute reports an unmeasured watched count as null rather than claiming no arithmetic occurred. File output uses shell redirection; trace import/playback from files is not implemented.
+
+## Terminal keys
+
+The native workbench requires ANSI-compatible TTY input/output, at least80×24; painting is capped at200×64. Resize, cursor/termios restoration, shared REPL input and handled signals are supported.
+
+| Keys | Action |
+|---|---|
+| Tab, arrows | Focus instructions/AST/value; navigate or scroll rows/columns |
+| Enter/n/p, PgUp/PgDn, g/G | Instruction next/previous/pages/ends |
+| b, /, f | Raw register bits toggle; opcode/stage substring search; next match |
+| e | Edit a new expression; Enter runs, Esc cancels; arrows/Home/End/Delete/Backspace |
+| Editor Up/Down, Ctrl-U | Recall up to64 source strings; clear input |
+| m, c, q | Change next mode; clear workspace; exit back to classic REPL |
+
+History stores **source only**, not old workspaces or traces. Recalling and executing a source runs it anew against current variables. Value panes show the selected node's **completed value**, not a matrix frozen halfway through computation. The classic `:replay` interface is preserved. `:workbench` opens the new UI from the classic REPL.
+
+Signal cleanup is deferred to a UI boundary; this is not immediate in-expression cancellation. SIGKILL, external SIGSTOP, crashes or system failure cannot guarantee cleanup. ASCII editing only; no mouse or Unicode line editor. The development libc-reference build deliberately has no native workbench host.
+
+## Numerical workspace
+
+Dynamic dense row-major float64 arrays, deep-copy assignment and transactional variable+ans commit remain. Functions include `sin/cos/sqrt/log/sum/transpose`, `zeros/ones/eye/size/linspace`; `A(row,col)` is1-based scalar read only. No slices, indexed assignment, empty matrices, symbolic math or solver.
+
+One value: max1,048,576 elements. Dynamic mapping budget:64MiB by default (`--memory-mib 1..1024`), including allocator metadata/temporary/staged copies but excluding static buffers/stack/whole-process RSS. AST512, recursion64, line4095bytes, decimal token127bytes, matmul16,777,216 terms. Trigonometric range and accuracy contracts are unchanged. [Language](docs/LANGUAGE.md) · [Numerics](docs/NUMERICS.md)
+
+## Build and validate
+
+```sh
 sudo apt-get install -y nasm gcc make binutils python3
 make clean
 make -j2 test
 make test-guards
+# Without rebuilding delivered objects:
+make verify
 ```
 
-Production is a static **Linux x86-64** ELF built directly by NASM and GNU ld, with no interpreter, libc, CRT, external math library or Python dependency. A kernel, terminal and filesystem remain OS dependencies. Separate WSL hardware and Windows-native/ARM/Pi execution are not tested. Development comparison binaries intentionally retain libc; the included comparison executable requires glibc2.34+ on the test host, not in production.
+`make workbench-test` rebuilds the two native profiles and runs additional Observe regression, Trace v2/code inspections and controlled-PTY tests. Default app linking uses NASM+GNU ld and14 project objects. Python3.10+ is build/test infrastructure; GCC/libc are only needed for explicit development comparison targets. Native builds never silently fall back to GAS.
 
-`make verify` tests delivered artifacts without rebuilding (Python3.10+ and binutils required). `make workspace-test` rebuilds and tests the dynamic subsystem. Build/source/object/map provenance is verified before normal gates execute binaries; keep the packaged `.o` and `.map` files for no-rebuild verification. GAS translation is not an automatic fallback.
+[Release results](evidence/release-summary.json) · [Workbench evidence](evidence/workbench/observable-workbench.json) · [ABI](docs/RUNTIME-ABI.md) · [Tool provenance](docs/TOOLCHAIN-PROVENANCE.md)
 
-## Bounds and ownership
-
-Maximum1,048,576 float64 elements **per value**, plus total page-rounded dynamic quota. Default64 MiB is not total RSS or a security sandbox. Old values, evaluation intermediates, target copies and staged `ans` may coexist. A large result can fail to commit even if its own buffer fits. Anonymous mmap success is not a guarantee against host OOM-killer termination.
-
-AST512, temporary descriptors512, recursion64, input4095bytes, decimal token127bytes, trace8192frames remain. Each matrix product is capped at16,777,216 scalar multiply terms. Large tables preview16×16; JSON/quiet export the full array. User-variable previews show at most64 entries (including `ans`). No limit is silently removed or presented as unlimited memory.
-
-`math.asm` and the real `exec_sse` capture implementation are unchanged from0.3.0. Matrix address handling changed to follow data pointers; the whole kernels file is therefore **not** identical. Constructors/metadata and allocator instructions are not full-instruction trace events. `linspace` uses observed weighted floating arithmetic; it is not a correctly-rounded real-number interpolator.
-
-## Evidence
-
-Local release: **186,731 assertions, 0 failures**, plus **32 separate fail-closed checks**. Repeated profiles/backends and ABI checks are included; not unique equations or a formal proof. Dynamic tests cover allocator arithmetic/alignment/accounting,320variables, repeated allocation/deletion, commit-time quota failures, OS-returned mmap failure, replay lifetimes, malformed calls and library-free execution. [Reports](evidence/release-summary.json) · [Dynamic report](evidence/dynamic/dynamic-workspace.json)
-
-Remote CI is configured, not executed in this delivery. Raspberry Pi/ARM64/web/2D–3D graphics remain [planning-only](docs/plans/RASPBERRY-PI5-SERVER-PLAN-KR.md). This is not a public multi-user service, JIT or live debugger. Full Observe/Compute separation belongs to the next roadmap stage.
+Tests ran in a local Linux x86-64 container, not remote GitHub Actions or physical WSL/Pi machines. Repeated corpus/assertion counts are not distinct mathematical examples or formal proofs. The bundled NASM toolchain provenance is documented; the tool itself is not redistributed. Verify extracted files with `sha256sum -c MANIFEST.sha256`; these hashes are not signatures.

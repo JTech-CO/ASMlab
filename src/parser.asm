@@ -285,6 +285,8 @@ parse_statement:
     mov qword [r13+N_TYPE], ASSIGN
     mov rax, [rsp+40]
     mov [r13+N_POS], rax
+    mov rcx, [r13+N_ID]
+    mov [node_starts+rcx*8], rax
     mov [r13+N_LEFT], r12
     lea rdi, [r13+N_NAME]
     lea rsi, [rsp]
@@ -364,6 +366,8 @@ parse_expression:
     jne .fail
     jmp .infix
 .group:
+    mov rax, [tok_pos]
+    mov [rsp], rax
     call next_token
     xor edi, edi
     call parse_expression
@@ -372,6 +376,12 @@ parse_expression:
     jne .fail
     cmp qword [tok_type], ')'
     jne .paren_error
+    mov rax, [r12+N_ID]
+    mov rdx, [rsp]
+    mov [node_starts+rax*8], rdx
+    mov rax, [tok_pos]
+    inc rax
+    mov [r12+N_END], rax
     call next_token
     jmp .infix
 .matrix:
@@ -525,6 +535,9 @@ parse_matrix:
     mov [r13+N_ROWS], r15
     mov rax, [rsp]
     mov [r13+N_COLS], rax
+    mov rax, [tok_pos]
+    inc rax
+    mov [r13+N_END], rax
     call next_token
     mov rax, r13
     DONE
@@ -576,6 +589,10 @@ parse_arguments:
     cmp qword [tok_type], ')'
     jne .paren
 .close:
+    mov rax, [lex_ptr]
+    lea rcx, [input_buf]
+    sub rax, rcx
+    mov [r12+N_END], rax
     call next_token
     jmp .done
 .comma:

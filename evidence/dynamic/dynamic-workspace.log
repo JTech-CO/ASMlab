@@ -1,4 +1,4 @@
-$ /opt/pyvenv/bin/python3 tests/dynamic_workspace.py --report /mnt/data/ASMlab-v0.4.0/build/evidence/dynamic/dynamic-workspace.json
+$ /usr/bin/python3 tests/dynamic_workspace.py --report /mnt/data/ASMlab-v0.5.0/build/evidence/dynamic/dynamic-workspace.json
 {
   "case_count": 8892,
   "group_counts": {
@@ -136,7 +136,7 @@ $ /opt/pyvenv/bin/python3 tests/dynamic_workspace.py --report /mnt/data/ASMlab-v
   "failure_count": 0,
   "failures": [],
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "limitations": [
     "Tests are finite samples, not formal memory-safety or numerical proofs.",
     "Quota accounts page-rounded dynamic mappings, not stack, static storage, total RSS or CPU time.",

@@ -4,6 +4,7 @@ Checksums are local integrity evidence, NOT signatures or a trust authority.
 """
 from __future__ import annotations
 import json
+import hashlib
 from pathlib import Path
 from build_native import ROOT, digest, build_inputs, APP_MODULES, REFERENCE_MODULES
 from build_foundation import foundation_inputs
@@ -26,6 +27,8 @@ def validate_app(name: str, profile: str, backend: str='native') -> dict:
     if meta.get('version')!=(ROOT/'VERSION').read_text().strip():raise RuntimeError('Version mismatch: '+name)
     if meta.get('binary')!='bin/'+name or meta.get('binary_sha256')!=digest(binary):raise RuntimeError('Binary hash mismatch: '+name)
     hashes(meta.get('source_sha256',{}),build_inputs())
+    identity=hashlib.sha256(''.join(str(f.relative_to(ROOT))+':'+digest(f)+'\n' for f in build_inputs()).encode()).hexdigest()+'/'+profile+'/'+backend
+    if meta.get('source_build_id')!=identity:raise RuntimeError('Trace/source build identity mismatch: '+name)
     modules=meta.get('project_objects',[])
     sources=[x[0] for x in (APP_MODULES if backend=='native' else REFERENCE_MODULES)]
     if [x['source'] for x in modules]!=sources:raise RuntimeError('Wrong project object boundary: '+name)

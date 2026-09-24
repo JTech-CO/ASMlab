@@ -3,7 +3,7 @@ CC ?= cc
 LD ?= ld
 PYTHON ?= python3
 
-.PHONY: all release debug reference foundation run demo test native-gate runtime-test verify audit disasm validate-gas clean test-guards l3-test empty-root-test workspace-test
+.PHONY: all release debug reference foundation run demo test native-gate runtime-test verify audit disasm validate-gas clean test-guards l3-test empty-root-test workspace-test workbench-test
 all: release
 
 # Always rebuild. A failed tool lookup/build must not leave a stale success.
@@ -21,7 +21,7 @@ run: release
 demo: release
 	./bin/asmlab --bits -f examples/walkthrough.asmlab
 
-# Full v0.4.0: Native + Foundation + exact decimal + L3 + dynamic workspace.
+# Full v0.5.0: Native + Foundation + decimal + L3 + Dynamic + Observable Workbench.
 test: release debug reference foundation
 	$(PYTHON) tools/release_gate.py --report-dir build/evidence
 native-gate: release debug
@@ -32,6 +32,9 @@ runtime-test: release debug reference foundation
 # No rebuild or NASM required; delivered objects/link maps are checked as well.
 verify:
 	$(PYTHON) tools/release_gate.py --report-dir build/verify-existing
+
+workbench-test: release debug
+	$(PYTHON) tools/workbench_gate.py --report-dir build/workbench-only
 
 workspace-test: release debug reference foundation
 	$(PYTHON) tools/dynamic_gate.py --report-dir build/dynamic-only
@@ -48,6 +51,7 @@ test-guards:
 	$(PYTHON) tests/runtime_gate_guards.py --report build/runtime-gate-guards.json
 	$(PYTHON) tests/l3_guards.py --report build/l3-gate-guards.json
 	$(PYTHON) tests/dynamic_guards.py --report build/dynamic-gate-guards.json
+	$(PYTHON) tests/workbench_guards.py --report build/workbench-gate-guards.json
 
 audit:
 	sh tests/audit.sh bin/asmlab
@@ -61,7 +65,7 @@ disasm: release debug
 # The v0.1.0 single-unit GAS translator does not implement v0.2 module linking.
 # Historical tool retained for provenance only; this is NOT a native fallback.
 validate-gas:
-	@echo "Unavailable for v0.4.0. Historical GAS bridge is not a release build path." >&2
+	@echo "Unavailable for v0.5.0. Historical GAS bridge is not a release build path." >&2
 	@exit 2
 
 clean:

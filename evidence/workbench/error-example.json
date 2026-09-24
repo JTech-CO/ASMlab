@@ -1,0 +1,1 @@
+{"schema_version":2,"format":"asmlab.trace","ok":false,"expression_id":1,"source":"1/0","error":"Division by zero.","position":1,"snapshot_available":false}

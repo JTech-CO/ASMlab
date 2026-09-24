@@ -1,4 +1,4 @@
-# ASMlab v0.4.0 Dynamic Workspace 구현 명세
+# ASMlab Dynamic Workspace 구현 명세 - v0.5.0 유지
 
 **상태: Linux x86-64 NASM 구현·로컬 검증 완료.** 미래 설계안과 구분한다. 기본 앱의 L3-Core 의존성 경계는 유지한다.
 
@@ -102,7 +102,7 @@ arena chunk는 next/capacity16바이트 뒤부터16바이트 정렬 bump 할당�
 
 `linspace`는 첫/끝 표본 비트를 복사하고 내부 표본은 `t=i/(n-1)`, `t*b+(1-t)*a`로 계산한다. 반대 부호의 큰 값에서 먼저 `b-a`를 만들지 않는다. 균일한 실수 좌표의 correctly-rounded 변환이나 NumPy/MATLAB과 비트 동일성을 보장하지 않는다. 부동소수점 반올림으로 일부 표본이 같아질 수 있다. n=1은 b만 복사한다.
 
-linspace의 실제 산술·끝점 copy와 인덱스 선택 copy는 기존 관찰 커널을 사용한다. 생성자의 정수 채우기, shape 변환, allocator 및 모든 CPU 명령을 추적하는 것은 아니다. 큰 표본 수에서 trace가8192를 넘으면 누락을 명시하고 계산은 계속한다. `:trace off`는 기존과 같이 scratch/dispatch 비용이 남는다.
+linspace의 실제 산술·끝점 copy와 인덱스 선택 copy는 기존 관찰 커널을 사용한다. 생성자의 정수 채우기, shape 변환, allocator 및 모든 CPU 명령을 추적하는 것은 아니다. 큰 표본 수에서 trace가8192를 넘으면 누락을 명시하고 계산은 계속한다. v0.5.0의 `:trace off`는 Compute로 전환하므로 scratch/관찰 디스패치를 실행하지 않는다.
 
 ## 7. 출력과 관리
 
@@ -118,7 +118,7 @@ linspace의 실제 산술·끝점 copy와 인덱스 선택 copy는 기존 관찰
 
 [결과](../evidence/dynamic/dynamic-workspace.json): 동적8,892 assertions, 실패0. 전체186,731 assertions, 별도guard32개. 실제 CPU·OS는 로컬 Linux x86-64이며 원격 CI/ARM/WSL 실기기는 미검증이다. quota로 임의 어셈블리 실행을 sandbox한 제품은 아니다.
 
-후속 v0.5.0에서 별도 trace schema, Observe/Compute 경로, 더 나은 패널을 진행한다. 메모리 pool·해시 테이블·COW·범용 dtype·동시성·save/load는 이번 버전에 없으며 공개 서버/Pi/그래프 역시 계획만 유지한다.
+v0.5.0에서 [Trace v2](TRACE-V2.md), Observe/Compute 특수화와 [연동 패널](OBSERVABLE-WORKBENCH-KR.md)을 추가했다. 메모리 pool·해시 테이블·COW·범용 dtype·동시성·save/load는 이번 버전에 없으며 공개 서버/Pi/그래프 역시 계획만 유지한다.
 
 ## 근거
 

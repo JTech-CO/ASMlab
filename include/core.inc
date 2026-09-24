@@ -4,10 +4,7 @@
 %include "include/abi.inc"
 %include "include/layout.inc"
 %include "include/rt/api.inc"
-%macro OP 1
-    mov edi, %1
-    call exec_sse
-%endmacro
+%include "include/observation.inc"
 %macro SAY 1
     lea rdi, [%1]
     call rt_console_puts

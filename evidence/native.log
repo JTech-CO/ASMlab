@@ -1,13 +1,13 @@
-+ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.4.0/bin/asmlab --report /mnt/data/ASMlab-v0.4.0/build/evidence/native/release-regression.json
-+ sh tests/audit.sh /mnt/data/ASMlab-v0.4.0/bin/asmlab
-+ /opt/pyvenv/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.4.0/bin/asmlab-debug --report /mnt/data/ASMlab-v0.4.0/build/evidence/native/debug-regression.json
-+ sh tests/audit.sh /mnt/data/ASMlab-v0.4.0/bin/asmlab-debug
-+ /opt/pyvenv/bin/python3 tests/native_contract.py --report /mnt/data/ASMlab-v0.4.0/build/evidence/native/native-contract.json
++ /usr/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.5.0/bin/asmlab --report /mnt/data/ASMlab-v0.5.0/build/evidence/native/release-regression.json
++ sh tests/audit.sh /mnt/data/ASMlab-v0.5.0/bin/asmlab
++ /usr/bin/python3 tests/verify.py /mnt/data/ASMlab-v0.5.0/bin/asmlab-debug --report /mnt/data/ASMlab-v0.5.0/build/evidence/native/debug-regression.json
++ sh tests/audit.sh /mnt/data/ASMlab-v0.5.0/bin/asmlab-debug
++ /usr/bin/python3 tests/native_contract.py --report /mnt/data/ASMlab-v0.5.0/build/evidence/native/native-contract.json
 {
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "status": "passed",
-  "executed_at_utc": "2026-09-23T22:32:23.376019+00:00",
+  "executed_at_utc": "2026-09-23T23:45:17.320717+00:00",
   "steps": [
     {
       "name": "release-regression",

@@ -13,8 +13,12 @@ eval_node:
     mov rax, [r12+N_POS]
     mov [tok_pos], rax
     mov rax, [r12+N_ID]
-    mov [trace_node], rax
-    mov qword [trace_element], 0
+    TRACE_SET trace_node, rax
+    TRACE_SET trace_element, 0
+    TRACE_SET trace_stage, ST_NONE
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_k, -1
+    TRACE_SET trace_lanes, 1
     mov rax, [r12+N_TYPE]
     cmp rax, NUM
     je .number
@@ -206,10 +210,14 @@ eval_node:
     DONE
 .context:
     mov rax, [r12+N_ID]
-    mov [trace_node], rax
+    TRACE_SET trace_node, rax
     mov rax, [r12+N_POS]
     mov [tok_pos], rax
-    mov qword [trace_element], 0
+    TRACE_SET trace_element, 0
+    TRACE_SET trace_stage, ST_NONE
+    TRACE_SET trace_kind, KIND_OUTPUT
+    TRACE_SET trace_k, -1
+    TRACE_SET trace_lanes, 1
     ret
 .depth:
     lea rdi, [err_depth]
@@ -280,6 +288,7 @@ apply_function:
     test rax, rax
     jz .fail
     mov r14, rax
+    TRACE_SHAPE r14
     mov r15, [r12]
     imul r15, [r12+8]
     xor ebx, ebx
@@ -288,7 +297,7 @@ apply_function:
 .scalar_loop:
     cmp rbx, r15
     jae .complete
-    mov [trace_element], rbx
+    TRACE_SET trace_element, rbx
     mov r10, [r12+V_DATA]
     movsd xmm0, [r10+rbx*8]
     cmp r13, F_SIN
@@ -322,7 +331,7 @@ apply_function:
     inc rcx
     jmp .check_loop
 .sqrt_loop:
-    mov [trace_element], rbx
+    TRACE_SET trace_element, rbx
     mov rax, r15
     sub rax, rbx
     cmp rax, 2
@@ -330,6 +339,8 @@ apply_function:
     pxor xmm0, xmm0
     mov r10, [r12+V_DATA]
     movupd xmm1, [r10+rbx*8]
+    TRACE_SET trace_stage, ST_SQRT
+    TRACE_SET trace_lanes, 2
     OP O_SQRTPD
     mov r10, [r14+V_DATA]
     movupd [r10+rbx*8], xmm0
@@ -341,6 +352,8 @@ apply_function:
     pxor xmm0, xmm0
     mov r10, [r12+V_DATA]
     movsd xmm1, [r10+rbx*8]
+    TRACE_SET trace_stage, ST_SQRT
+    TRACE_SET trace_lanes, 1
     OP O_SQRTSD
     mov r10, [r14+V_DATA]
     movsd [r10+rbx*8], xmm0
@@ -362,9 +375,13 @@ apply_function:
     xor ebx, ebx
     pxor xmm0, xmm0
 .sumloop:
+    TRACE_SET trace_stage, ST_SUM
+    TRACE_SET trace_kind, KIND_INPUT
+    TRACE_SHAPE r12
+    TRACE_SET trace_lanes, 1
     cmp rbx, r15
     jae .sumdone
-    mov [trace_element], rbx
+    TRACE_SET trace_element, rbx
     mov r10, [r12+V_DATA]
     movsd xmm1, [r10+rbx*8]
     OP O_ADDSD

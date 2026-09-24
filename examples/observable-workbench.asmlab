@@ -1,0 +1,11 @@
+# Batch/REPL mode and Trace v2 demonstration. GUI entry is a terminal CLI option.
+:mode observe
+x=linspace(-1,1,9)
+y=sin(x)
+:trace json
+:mode compute
+sum(y)
+:trace json
+:mode observe
+sqrt([1,4,9,16])+2
+:trace json

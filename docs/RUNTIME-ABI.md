@@ -1,4 +1,4 @@
-# ASMlab v0.4.0 Runtime ABI
+# ASMlab v0.5.0 Runtime ABI
 
 Implemented internal contract, Linux x86-64. Not a C standard-library replacement or a stable network API.
 
@@ -46,7 +46,7 @@ Float64 parsing accepts decimal mantissas/exponents, no whitespace/locale/hex/no
 | rt_fd_read | fd, dst, capacity | byte count / EOF0 / -errno; retries EINTR only |
 | rt_fd_write_all | fd, bytes, count | RAX0/-errno, RDXbytes written; short writes advance; EINTR retry; EAGAIN propagates; zero progress -> -EIO |
 
-These are blocking-oriented routines, not an event loop. Default SIGPIPE/SIGINT actions remain; SIGPIPE may terminate the process rather than returning EPIPE. No fsync durability guarantee, arbitrary syscall policy, cancellation handler or raw-mode TUI is provided.
+These are blocking-oriented routines, not an event loop. Default SIGPIPE/SIGINT actions remain; SIGPIPE may terminate the process rather than returning EPIPE. No fsync durability guarantee or arbitrary syscall policy is provided. The optional native Workbench has its own terminal/signal host described below; this is not generic in-expression cancellation.
 
 ## Reader / Writer
 
@@ -121,3 +121,23 @@ Normal `main` return now releases temporary and persistent mappings before `rt_h
 [Tests](VERIFICATION.md) · [L3 boundary](LEVEL3-CONTRACT.md)
 
 Platform references: NASM ELF output <https://www.nasm.us/doc/nasm09.html>; Linux syscall ABI <https://man7.org/linux/man-pages/man2/syscall.2.html>; partial writes <https://man7.org/linux/man-pages/man2/write.2.html>; close policy <https://man7.org/linux/man-pages/man2/close.2.html>. These describe platform contracts, not an independent certification of this implementation.
+
+## Native Workbench ABI (v0.5.0)
+
+Implemented by `src/platform/linux/terminal.asm`; project SysV rules apply. Main/Reader/Writer remain single-session. These routines are not linked into the libc reference. No test callbacks or foreign toolkit runs in the production UI.
+
+| API | Input | Result and state |
+|---|---|---|
+| rt_terminal_enter | none | 0 success, negative errno failure. Save kernel termios36bytes and selected sigactions; set cbreak; enter alternate screen; hide cursor. Best-effort unwind on partial setup failure. |
+| rt_terminal_leave | none | Restore saved terminal/action state, cursor and alternate screen. Idempotent when not live; negative terminal/output error can be returned. |
+| rt_terminal_poll | timeout milliseconds | RAX0..255 byte; -1 timeout/interruption; -2 EOF/I/O failure; -3 handled termination with RDX=signal. Checks the pre-read stdin buffer before poll/read. |
+| rt_terminal_size | none | RAX columns, RDX rows, RCX dirty/resize flag. ioctl failure/zero dimension falls back to80×24. |
+| rt_input_try_byte | none | Borrowed shared Reader buffered byte0..255, or -1 if no buffered byte. No fd read/reset. Private native adapter boundary. |
+
+Terminal handlers for HUP/INT/QUIT/PIPE/TERM only set flags; WINCH/CONT request redraw; TSTP requests suspend. `rt_terminal_poll` handles suspend at a safe boundary: restore terminal/screen, SIGSTOP self, restore UI after CONT. Native screen output uses explicit CRLF with OPOST disabled. ISIG remains enabled. Handled exit status is128+signal. Old dispositions are restored when leaving.
+
+The UI edits source in bounded static buffers and uses the existing `process_line`; it does not bypass parser/value/domain/quota/commit checks. A failed expression invalidates root/result/trace before any pane or value-navigation action can dereference a Value. AST `N_END` occupies byte120; `node_starts` is a parallel table. `Trace` grows to192bytes, [layout and meaning](TRACE-V2.md).
+
+`OP`/`TRACE_SET`/`TRACE_SHAPE` are assembly-time specialization macros, not runtime ABI entry points. `eval_node_compute` and the `_compute` numerical functions do not call the observed arithmetic dispatcher. Shared allocation/validation/commit routines remain ordinary calls. The dispatch decision occurs once per expression. No reentrant, multithreaded, network, or dynamically loaded plugin ABI is introduced.
+
+Uncatchable SIGKILL/SIGSTOP or crashes cannot guarantee restoration. Cleanup during long evaluation is deferred; a successful evaluation can commit before the termination flag is handled. This is not a transactional cancel mechanism. Fixed trace/TUI/history storage lies outside the mmap quota. An I/O failure after computation does not undo a workspace commit.

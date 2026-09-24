@@ -13,3 +13,8 @@ extern rt_decimal_from_cstr
 extern rt_heap_alloc, rt_heap_free, rt_memory_set_limit, rt_memory_stats
 extern rt_parse_u64
 
+
+%ifndef ASMLAB_LIBC_REFERENCE
+extern rt_terminal_enter, rt_terminal_leave, rt_terminal_poll, rt_terminal_size
+extern rt_console_write_bytes, rt_format_i64, rt_format_u64, rt_format_hex64, rt_format_f64
+%endif

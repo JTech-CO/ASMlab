@@ -1,7 +1,8 @@
 section .rodata
 usage: db 'Usage: asmlab [--quiet|--json] [--all] [--bits] [--step]',10
        db '              [--color|--no-color] [-e EXPRESSION | -f FILE]',10
-       db '              [--memory-mib 1..1024]',10
+       db '              [--memory-mib 1..1024] [--mode observe|compute]',10
+       db '              [--trace-json] [--workbench]',10
        db '       asmlab --help | --version',10
 %ifdef ASMLAB_LIBC_REFERENCE
        db 'Runtime: development-only libc/CRT comparison backend; NOT L3-Core.',10
@@ -22,6 +23,13 @@ help_text: db 'EXPRESSIONS',10
        db 'COMMANDS',10
        db '  :help  :vars  :memory  :drop NAME  :clear  :quit',10
        db '  :trace on|off|all   :bits on|off   :step on|off   :replay',10
+       db '  :mode observe|compute   :trace json   :workbench',10
+       db 'MODES / WORKBENCH',10
+       db '  Observe captures real instructions; Compute uses inline non-capturing SSE2.',10
+       db '  JSON/quiet default to Compute; --trace-json defaults to Observe.',10
+       db '  --mode overrides the default. :trace off = Compute, on/all = Observe.',10
+       db '  --workbench requires native Linux TTY/ANSI, at least 80 columns x 24 rows.',10
+       db '  Workbench: Tab focus, arrows/pages, e edit, / search, f next, b bits, m mode, q exit.',10
        db 'TRACE',10
        db '  Real pre/post XMM captures from precompiled SSE2 kernels, not a JIT.',10
        db '  Replay happens AFTER evaluation: Enter/n=next, p=previous, q=finish.',10
@@ -67,6 +75,15 @@ err_command: db 'Unknown command. Type :help.',0
 err_open: db 'Cannot open input file.',0
 err_read: db 'Input stream read failed.',0
 err_args: db 'Invalid command-line arguments. Run asmlab --help.',0
+opt_mode: db '--mode',0
+mode_observe: db 'observe',0
+mode_compute: db 'compute',0
+opt_workbench: db '--workbench',0
+opt_tracejson: db '--trace-json',0
+cmd_observe: db ':mode observe',0
+cmd_compute: db ':mode compute',0
+cmd_workbench: db ':workbench',0
+cmd_export: db ':trace json',0
 section .text
 global main
 main:
@@ -165,7 +182,51 @@ main:
     call rt_strcmp
     test eax, eax
     jz .memory_option
+    mov rdi, r14
+    lea rsi, [opt_mode]
+    call rt_strcmp
+    test eax, eax
+    jz .mode_option
+    mov rdi, r14
+    lea rsi, [opt_workbench]
+    call rt_strcmp
+    test eax, eax
+    jz .workbench_option
+    mov rdi, r14
+    lea rsi, [opt_tracejson]
+    call rt_strcmp
+    test eax, eax
+    jz .tracejson_option
     jmp .badargs
+.workbench_option:
+    mov qword [workbench_requested], 1
+    jmp .nextarg
+.tracejson_option:
+    mov qword [trace_json_mode], 1
+    mov qword [json_mode], 1
+    jmp .nextarg
+.mode_option:
+    inc ebx
+    cmp ebx, r12d
+    jae .badargs
+    mov r14, [r13+rbx*8]
+    mov rdi, r14
+    lea rsi, [mode_observe]
+    call rt_strcmp
+    test eax, eax
+    jz .mode_observe
+    mov rdi, r14
+    lea rsi, [mode_compute]
+    call rt_strcmp
+    test eax, eax
+    jnz .badargs
+    mov qword [execution_mode], 1
+    jmp .mode_set
+.mode_observe:
+    mov qword [execution_mode], 0
+.mode_set:
+    mov qword [mode_explicit], 1
+    jmp .nextarg
 .memory_option:
     inc ebx
     cmp ebx, r12d
@@ -229,6 +290,32 @@ main:
     inc ebx
     jmp .args
 .configured:
+    cmp qword [mode_explicit], 0
+    jne .mode_ready
+    cmp qword [trace_json_mode], 0
+    jne .mode_ready
+    mov rax, [quiet_mode]
+    or rax, [json_mode]
+    jz .mode_ready
+    mov qword [execution_mode], 1
+.mode_ready:
+    mov rax, [execution_mode]
+    xor rax, 1
+    mov [trace_enabled], rax
+    cmp qword [workbench_requested], 0
+    je .presentation
+    cmp qword [interactive_mode], 0
+    je .badargs
+    mov rax, [quiet_mode]
+    or rax, [json_mode]
+    jnz .badargs
+    cmp qword [rsp], 2
+    je .badargs
+    cmp qword [rsp], 1
+    je .presentation
+    call wb_run
+    jmp .finish
+.presentation:
     cmp qword [json_mode], 0
     jne .source_ready
     cmp qword [quiet_mode], 0
@@ -259,6 +346,9 @@ main:
     mov rsi, [rsp+8]
     call rt_memcpy
     call process_line
+    cmp qword [workbench_requested], 0
+    je .finish
+    call wb_run
     jmp .finish
 .read_loop:
     cmp qword [interactive_mode], 0
@@ -400,6 +490,9 @@ process_line:
     cmp byte [r12], ':'
     je .command
     call expression_reset
+    inc qword [expression_serial]
+    mov rax, [execution_mode]
+    mov [last_execution_mode], rax
     lea rdi, [last_input]
     lea rsi, [input_buf]
     mov edx, INPUT_CAP
@@ -410,10 +503,21 @@ process_line:
     test rax, rax
     jz .empty
     mov [root_node], rax
+    mov rdi, rax
+    call trace_prepare_spans
+    mov rax, [root_node]
     ; Numerical trace starts clean, independent of decimal/parser side effects.
     ldmxcsr [mxcsr_default]
     mov rdi, rax
+    cmp qword [execution_mode], 0
+    jne .compute
     call eval_node
+    jmp .evaluated
+.compute:
+    call eval_node_compute
+.evaluated:
+    mov qword [final_mxcsr], 0
+    stmxcsr [final_mxcsr]
     cmp qword [err_msg], 0
     jne .error
     test rax, rax
@@ -430,6 +534,8 @@ process_line:
     test eax, eax
     jz .error
     mov [result_value], r13
+    cmp qword [wb_active], 0
+    jne .empty
     call render_result
 .empty:
     xor eax, eax
@@ -437,7 +543,10 @@ process_line:
 .error:
     mov qword [result_value], 0
     mov qword [exit_status], 1
+    cmp qword [wb_active], 0
+    jne .discard_failed
     call render_error
+.discard_failed:
     ; Failed expressions retain no dangling AST/arena pointers for replay.
     mov qword [root_node], 0
     mov qword [trace_count], 0
@@ -523,6 +632,26 @@ process_command:
     test eax, eax
     jz .memory
     mov rdi, r12
+    lea rsi, [cmd_observe]
+    call rt_strcmp
+    test eax, eax
+    jz .traceon
+    mov rdi, r12
+    lea rsi, [cmd_compute]
+    call rt_strcmp
+    test eax, eax
+    jz .traceoff
+    mov rdi, r12
+    lea rsi, [cmd_workbench]
+    call rt_strcmp
+    test eax, eax
+    jz .workbench
+    mov rdi, r12
+    lea rsi, [cmd_export]
+    call rt_strcmp
+    test eax, eax
+    jz .export
+    mov rdi, r12
     mov esi, 6
     call rt_strnlen
     cmp rax, 6
@@ -570,13 +699,16 @@ process_command:
     mov qword [exit_status], 1
     jmp .done
 .traceon:
+    mov qword [execution_mode], 0
     mov qword [trace_enabled], 1
     mov qword [trace_limit], 6
     jmp .changed
 .traceoff:
+    mov qword [execution_mode], 1
     mov qword [trace_enabled], 0
     jmp .changed
 .traceall:
+    mov qword [execution_mode], 0
     mov qword [trace_enabled], 1
     mov qword [trace_limit], TRACE_CAP
     jmp .changed
@@ -597,6 +729,14 @@ process_command:
     cmp qword [quiet_mode], 0
     jne .done
     SAY setting_msg
+    jmp .done
+.workbench:
+    call wb_run
+    test eax, eax
+    jnz .quit
+    jmp .done
+.export:
+    call trace_export
     jmp .done
 .replay:
     call replay_trace

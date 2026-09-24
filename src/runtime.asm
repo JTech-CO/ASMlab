@@ -20,6 +20,12 @@ new_node:
     mov [rax+N_ID], rcx
     mov rcx, [tok_pos]
     mov [rax+N_POS], rcx
+    mov rdx, [rax+N_ID]
+    mov [node_starts+rdx*8], rcx
+    mov rcx, [lex_ptr]
+    lea rdx, [input_buf]
+    sub rcx, rdx
+    mov [rax+N_END], rcx
     ret
 .full:
     lea rdi, [err_nodes]
@@ -370,6 +376,7 @@ expression_reset:
     mov qword [eval_depth], 0
     mov qword [err_msg], 0
     mov qword [err_pos], 0
+    mov qword [dispatch_entries], 0
     mov qword [trace_count], 0
     mov qword [trace_total], 0
     mov qword [trace_node], 0

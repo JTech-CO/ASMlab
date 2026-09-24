@@ -1,76 +1,98 @@
-# ASMlab v0.4.0 Dynamic Workspace 검증 보고서
+# ASMlab v0.5.0 Observable Workbench - 검증 보고서
 
-**검증일: 2026-09-24(Asia/Seoul). 실제 환경: Linux x86-64 컨테이너.** 기본 release/debug와 별도 개발용 비교·시험 산출물을 구분한다.
+검증 대상은 동봉된 Linux x86-64 release/debug, 개발용 libc 비교 실행 파일과 NASM 시험 fixture이다. 실제 실행 환경은 Linux 6.18.44 x86-64 컨테이너, NASM 2.16.03, GNU binutils 2.44이다. 도구 버전은 [환경 기록](../evidence/native/environment.txt), 각 입력·오브젝트·실행 파일 해시는 `bin/*.build.json`에 있다. 기록 시각은 보고서의 UTC 필드를 기준으로 한다.
 
-## 1. 실제 결과
+## 1. 결론
 
-**전체186,731 assertions 통과, 실패0. 별도 실패 차단32개 통과, 실패0.** 동일 corpus의 여러 프로파일·백엔드 반복, 네이티브 함수 호출별 ABI assertions를 포함한다. 서로 다른 수식186,731개, 전수검사 또는 형식 증명이라는 뜻이 아니다. 재압축 해제·재검사 횟수는 이 합계에 중복해서 더하지 않는다.
+전체 릴리스 검사 **225,984개 assertion, 실패 0**, 별도 실패 차단 검사 **41건, 실패 0**이다. [전체 결과](../evidence/release-summary.json) · [별도 guards](../evidence/guard-summary.json)
 
-| 검사 | 횟수 | 보고서 |
-|---|---:|---|
-| 기존 회귀 release | 14,410 | [JSON](../evidence/native/release-regression.json) |
-| 기존 회귀 debug | 14,410 | [JSON](../evidence/native/debug-regression.json) |
-| 상수·실제 SSE2·프로파일 비교 | 1,254 | [JSON](../evidence/native/native-contract.json) |
-| libc 비교 빌드 회귀 | 14,410 | [JSON](../evidence/runtime/libc-reference-regression.json) |
-| 기초 메모리·정수·입출력·ABI | 26,123 | [JSON](../evidence/runtime/runtime-unit.json) |
-| 호출·오브젝트·백엔드 경계 | 722 | [JSON](../evidence/runtime/runtime-boundary.json) |
-| 정확 decimal·독립 기준·ABI | 106,439 | [JSON](../evidence/l3/decimal-exact.json) |
-| 전체 L3 앱·입출력·무라이브러리 | 71 | [JSON](../evidence/l3/l3-core.json) |
-| 동적 allocator·행렬·원자성·수명 | 8,892 | [JSON](../evidence/dynamic/dynamic-workspace.json) |
-| **합계** | **186,731** | [summary](../evidence/release-summary.json) |
-| 별도 native/runtime/L3/dynamic guards | **6/9/9/8** | [summary](../evidence/guard-summary.json) |
+이는 유한한 시험의 실행 횟수다. 동일 corpus를 여러 프로파일/모드/백엔드에서 반복하고 ABI assertion도 포함하므로, 서로 다른 수식의 수나 전 입력에 대한 정확성 증명으로 해석하지 않는다. 원격 CI는 구성만 갱신했고 실행하지 않았다.
 
-이전16×16 크기 거부 두 건은17-axis 성공 수치 검사로 옮겼고,64번째 변수 저장 성공으로 기대를 변경했다. 변경된 계약을 예전 제한 그대로 검증하지 않는다. 나머지 기본 수치 회귀와 decimal·입출력·추적 검증을 유지했다.
+| 검사 묶음 | assertion | 실패 |
+|---|---:|---:|
+| Native: 기존 release/debug 회귀와 네이티브 계약 | 30,074 | 0 |
+| Runtime: 독립 루틴·호출 경계·libc 비교 | 41,261 | 0 |
+| L3: 정확 decimal·전체 정적 앱 통합 | 106,510 | 0 |
+| Dynamic Workspace | 8,892 | 0 |
+| Workbench: Observe 회귀 두 프로파일 + 새 기능 검사 | 39,247 | 0 |
+| **합계** | **225,984** | **0** |
 
-## 2. 새 동적 시험
+Workbench 39,247 = 기존 14,410개 corpus를 Observe 모드에서 release/debug 각각 실행한 28,820 + 추가 10,427이다. Native의 기존 JSON 수치 검사는 현재 기본 Compute 경로를 사용하며, 고전 캡처 검사는 Observe를 명시적으로 유지한다. Runtime 41,261 = libc 비교 14,410 + 기본 루틴 26,123 + 경계 검사 728이다. L3 106,510 = decimal 106,439 + 전체 앱 통합 71이다.
 
-실제 allocator가 반환한 포인터를 fixture에서 호출하고 독립 Python 모델과 byte-level 비교한다. size0·64비트 overflow·잘못된 quota·실사용보다 작은 quota·정확한 한도 도달·정렬·초기0·전체 payload 센티널·해제 accounting을 확인한다. 실제 매핑을 성공시키거나 거부하며 단순 mock 결과로 통과시키지 않는다. ABI probe는 callee-saved registers·DF·MXCSR 보존도 확인한다.
+## 2. Observe / Compute의 실제 분리
 
-세 앱에서 동적 shape·생성자·비균일17×19 리터럴·전치·직사각 곱·상한1,048,576개 원소·다인수·인덱스·문법/정의역 거부를 시험했다. scalar/dense 복사·self assignment·원본 변경 후 복사본·중간 인덱스 읽기를 확인했다. 320개 사용자 변수와 중간/끝/시작 항목 삭제가 동작한다. 각 앱에서180회 반복 생성·재대입·삭제·clear 후 used/live=0과 map=unmap이 유지됐다.
+`tests/observable_workbench.py`에서 프로파일·모드 조합별 **518개 결과 레코드**를 실행했다. 성공한 수식 결과의 binary64 비트를 비교하고, quota 초과 시 변수·ans 보존과 오류 상태도 비교했다. Trace v2 corpus의 **23개 수식 × 두 프로파일 = 46개** 성공 사례는 Observe/Compute의 결과와 평가 직후 최종 MXCSR를 비교했다.
 
-각 앱의450개 새 함수/괄호/인수 조합 fuzzy input은1MiB quota에서 실행하고, 성공·오류 여부와 무관하게 매번 clear 후 회수 지표를 검사했다. 이는 모든 비정상 입력의 안전성 증명은 아니다.
+Compute 코드의 실제 ELF 주소 범위를 역어셈블해 `exec_sse`, watched dispatch 및 Observe용 숫자 함수 호출이 없고 trace 저장 상태를 참조하지 않는지 검사했다. 같은 템플릿에서 생성된 인라인 SSE2 명령도 확인했다. 공유 allocator/검증/심볼 API 호출은 허용하며 프로그램 전체가 함수를 전혀 호출하지 않는다는 뜻은 아니다.
 
-### 늦은 commit 실패
+[검사 상세 및 실제 주소 범위](../evidence/workbench/observable-workbench.json)
 
-`--memory-mib 1`, A=25,000원소와 ans=99를 둔 다음 A 또는 신규 B=40,000원소를 평가했다. 임시 결과와 target 복사까지 실제 성공하고 ans 복사에서 실패하도록 quota를 구성했다.
+두 모드의 수학 연산 순서는 같지만 이 사실이 향후 AVX/FMA/다른 합산 순서까지 동일성을 보장하지는 않는다. 현재 Compute는 JIT나 외부 수학 백엔드가 아닌 빌드 시 특수화이다.
 
-- 기존 A·ans가 각각 원래 값과99로 보존됐다.
-- 실패한 신규 B는 변수 목록에 등록되지 않았다.
-- 실패 후 persistent 동적 사용량208,896바이트와 live3이 유지됐다. 이전 성공 수식 arena는 새 수식 시작 시 회수되므로 실패 직전 used와 같아야 한다고 가정하지 않는다.
-- clear 후 used/live=0, 누적map=unmap이었다.
+## 3. Trace v2의 진실성 검사
 
-OS 레벨 실패는 별도 프로세스 RLIMIT_AS=8MiB 아래에서, 기본64MiB 앱 quota에는 맞는 큰 결과를 mmap하도록 해 유도했다. 이 역시 기존 A와 ans를 보존했다. 호스트 OOM killer나 시스템 종료까지 복구한다는 뜻은 아니다.
+두 프로파일에서 합계 **1,434개 보관 프레임**을 조사했다. 실제 명령 주소와 ELF 명령 바이트, AST 노드와 source span, raw XMM 비트, MXCSR 제어 상태, 활성/하드웨어 lane, 행렬 문맥을 대조했다. 알려진 `sqrt([1,4,9,16])+2` 결과도 비트로 비교했다.
 
-## 3. 실제 캡처와 수명
+8192프레임 prefix 보관 정책의 초과·누락 계수, 모드 변경 후 이전 실행의 모드 보존, 변수 삭제 후 복사된 trace의 수명, 인덱스 읽기의 문맥, 괄호를 포함한 span, 오류 JSON을 시험했다. Compute에는 캡처가 없으며 `executed_watched: null`로 표시한다. 0개를 마치 모든 실제 CPU 명령 수인 것처럼 표시하지 않는다.
 
-`math.asm`은0.3.0과 동일하며 `exec_sse` dispatch/capture prefix도 동일하다. 전체 `kernels.asm`은 descriptor payload 접근과 work preflight를 위해 바뀌었으므로 전체 동일성을 주장하지 않는다. [소스 비교](../evidence/baseline-v0.3.0/source-comparison.json)
+[실제 Observe JSON](../evidence/workbench/trace-v2-example.json) · [같은 식의 Compute JSON](../evidence/workbench/compute-example.json) · [오류 JSON](../evidence/workbench/error-example.json)
 
-기존12종 SSE2 실제 명령 주소·opcode·XMM/MXCSR 검증을 유지했다. linspace endpoint/interior와 indexing의 실제 copy도 검사한다. constructors의 integer fill·shape 변환·메모리 관리까지 CPU 전 명령을 추적한다고 설명하지 않는다.
+범위는 선택된 SSE2 명령이다. 전체 CPU 명령·모든 메모리 접근·GPU·JIT 추적이 아니다. PC는 미리 작성된 공유 watched 명령 위치이며 개별 수식 토큰별로 새 기계어가 생성되는 것은 아니다. `sources`는 캡처된 레지스터 뷰 목록이며 모든 명령의 정밀한 읽기 집합 표기가 아니다.
 
-PTY에서 `A(17,19)+2` 평가 후 A를 drop하고 재생 n/p/q를 수행했다. temp 값이 persistent A와 독립이므로 재생이 유지됐다. clear 또는 새 실패 수식 후에는 재생을 거부한다. 큐에 들어온 입력이 공유 Reader를 통해 순서대로 처리되는지도 확인했다. trace cap을 넘기는 새 그래프용 표본 배열 계산은 누락 사실을 표시했다. 그래프 자체는 미구현이다.
+## 4. 실제 터미널 시험
 
-## 4. L3 의존성 경계와 빈 루트 실행
+release/debug 각각 **제어 터미널이 설정된 Linux PTY**에서 다음을 실행했다.
 
-release/debug는13개 프로젝트 NASM 오브젝트를 직접 ld로 정적 링크한다. 동적 로더·DT_NEEDED·미해결 import·CRT·외부 archive·libc·수학 라이브러리·Python runtime이 기본 앱에 없다. NX stack, RWX LOAD 부재, 실제 `/proc` file-backed mapping, 정확한 링크 입력도 검사한다. 정적 libc를 포함하고 동적 의존성만 없다고 주장하는 방식이 아니다.
+- AST/명령/레지스터/완료 값 패널, 선택 연동, 값 행·열 스크롤, 비트 표시.
+- 수식 편집·커서 키·제출, 소스 이력 호출, opcode/단계 검색·다음 일치·검색 실패.
+- 120×34, 80×24, 최소 미만 화면과 1×1로 축소 후 복귀.
+- 다음 실행 모드와 마지막 실행 모드 분리, Compute 무캡처 화면.
+- 잘못된 수식 이후 유효하지 않은 값 포인터를 접근하지 않고 탐색, 기존 ans 보존, 다음 실행.
+- 정상 종료 후 termios 복원; SIGINT/SIGTERM/SIGHUP/SIGQUIT/SIGPIPE 각 처리 후 복원.
+- SIGTSTP 요청 시 terminal 복원·중단, SIGCONT 후 재진입·화면 복구·종료.
+- REPL Reader가 미리 읽은 작업화면 키/후속 수식을 잃지 않는 경로.
 
-기존 L36건 외에 추가4건을 실행했다. 빈 루트에는 `/asmlab`과 스크립트만 두고 chroot 후 GID/UID65534로 낮췄다. release/debug 각각32×33 생성·복사·재대입·인덱스·삭제·clear를 파일과stdin 방식으로 실행했다. 동적 로더·사용자 라이브러리·셸은 없으며 이번 로컬 시험에서 이 항목을 생략하지 않았다.
+[120×34 실제 화면](../evidence/workbench/workbench-120x34.txt) · [80×24 화면](../evidence/workbench/workbench-80x24.txt) · [PNG 렌더링](workbench-demo.png)
 
-이것은 실행 의존성 시험이지 공개 서버 보안 sandbox 인증이 아니다. Linux 커널, 상속된 표준 fd, 커널 매핑은 사용한다. 일반 개발 환경에서 chroot 권한이 없으면 해당 시험은 skipped로 기록한다.
+시험 중 오류 수식 뒤 AST 값 패널이 해제된 임시 Value를 참조할 수 있는 문제를 발견했다. 렌더와 키 탐색을 모두 유효한 성공 snapshot으로 제한해 수정하고, divide-by-zero 뒤 탐색·ans·재실행을 회귀 사례로 추가했다. 현재 보고서는 수정 후의 결과다.
 
-## 5. 범위와 재현
+신호 정리는 UI의 안전한 경계에서 수행한다. 긴 수식 계산 중 즉시 취소하는 기능은 아니며 SIGKILL, 외부 SIGSTOP, 심각한 크래시에 복구를 보장하지 않는다. 테스트는 실제 WSL/Windows Terminal/원격 SSH 장비 시험을 대신하지 않는다. 이력은 소스만이며 디스크 저장·workspace snapshot 복원은 지원하지 않는다.
+
+## 5. L3 및 동적 작업공간 보존
+
+기본 release/debug는 프로젝트 NASM 오브젝트 **14개**를 GNU ld로 링크했다. PT_INTERP/DT_NEEDED/미해결 심볼 없음, 비실행 스택, 링크 입력과 오브젝트 출처를 검사했다. 정적 libc를 숨겨 넣고 무의존이라고 선언한 방식이 아니다. 개발용 libc-reference/decimal adapter는 별도 시험 대상이다.
+
+release/debug 각각 `/asmlab`, `/script.asmlab`만 있는 별도 루트 파일시스템에서 UID 65534로 인수·stdin·스크립트 3건씩, 총 **6건**을 실제 실행했다. 동적 행렬 생성/계산/삭제의 empty-root 시험도 실행했으며 생략되지 않았다. [L3 통합](../evidence/l3/l3-core.json) · [동적 시험](../evidence/dynamic/dynamic-workspace.json) · [ELF 감사](../evidence/l3/elf-runtime-audit.txt)
+
+quota/운영체제 반환 할당 실패/부분 대입 준비 실패에서 기존 변수와 ans를 유지하는 검사를 보존했다. 메모리 quota는 전체 RSS나 고정 trace/UI 저장소, CPU시간을 제한하는 sandbox가 아니다. empty-root 실행 시험도 공개 서버 보안 인증이 아니다.
+
+## 6. 별도 실패 차단
+
+기존 Native6 + Runtime9 + L39 + Dynamic8 + 신규 Workbench9 = **41건**이다. 새 Workbench guard는 다른 경로로 옮긴 원본의 무결성 검사, terminal/workbench/trace/macro/오브젝트 변조, 잘못된 source build ID, debug 누락, 숨겨진 ncurses 링크 인수를 검사한다.
+
+이는 해시·빌드 출처 검증이 실패하는지 보는 시험이며 각 guard에서 전체 기능 시험을 다시 실행한 것은 아니다. source build ID는 입력 digest/profile/backend이고 ELF SHA256이나 전자서명이 아니다.
+
+## 7. 성능 수치 해석
+
+추가 보고서에는 `sum(sin(linspace(-3,3,8192)))`를 모드별 5회 실행한 시간 표본이 있다. 이 로컬 실행의 중앙값은 Observe 약 **11.37ms**, Compute 약 **3.73ms**였다. 프로세스 시작·파싱·할당·JSON 출력까지 포함한 한 호스트/한 부하의 예시다. 커널만의 벤치마크, 일반적 배속 보장, MATLAB/BLAS와의 비교가 아니다. 시간 값은 테스트 합격 조건으로 사용하지 않았다.
+
+## 8. 재현과 경계
 
 ```sh
+# 제공 산출물과 input/object hash를 검사한 뒤 전체 suite, NASM 재빌드 없음
+make verify
+
+# 직접 NASM 재빌드와 전체 suite
 make clean
 make -j2 test
 make test-guards
-# 또는 동봉 바이너리·오브젝트 검증, 재빌드 없음
-make verify
+
+# 추가 Workbench gate만 재빌드·실행
+make workbench-test
 ```
 
-`make test-guards`는 프로파일·런타임·L3·dynamic relocation 및 변조 검사를 실행한다. NASM 미존재, 소스/object/fixture/linkmap 변조, 누락 inventory, 비교 경계 침범을 실행 전에 거부한다. 해시는 무결성 검증이며 디지털 서명은 아니다.
+Python3.10+와 binutils가 시험 도구이며 비교 실행 파일 때문에 시험 호스트에 glibc가 필요하다. 기본 앱 런타임의 무의존성과 혼동하지 않는다. NASM 출처는 [도구 기록](TOOLCHAIN-PROVENANCE.md)과 동일한 서드파티 2.16.03 prebuild이며 ZIP에 도구를 배포하지 않는다.
 
-구현된 메모리 한도는 전체 RSS·CPU 시간·스택·고정 BSS 또는 OS OOM 정책을 통제하지 않는다. 할당이 실패로 반환되는 경우의 트랜잭션을 검증했지 임의 포인터·중복 free·스레드 경합·host OOM-killer를 안전하게 복구하는 ABI가 아니다.
+파일별 해시는 MANIFEST.sha256으로 확인한다. 패키지 압축 해제 후 검증/재빌드는 별도 전달되는 `ASMlab-v0.5.0-release-check.txt`에 기록한다. 이 보고서의 원본 evidence를 다른 기기에서 재실행해 덮어썼다면 해당 기기의 새 보고서와 분리해 보관한다.
 
-원격 GitHub Actions는 갱신만 했고 실행하지 않았다. WSL·Windows 네이티브·ARM/Pi 하드웨어·웹 공개 서비스는 미검증/미구현이다. 수학 함수의 전체 정의역 correctly-rounded 증명, LLVM/GCC보다 빠르다는 성능 주장, 메모리 안전 형식 증명도 하지 않는다.
-
-[도구 출처](TOOLCHAIN-PROVENANCE.md) · [동적 ABI와 수명](DYNAMIC-WORKSPACE-KR.md) · [빌드/시험 로그](../evidence/build-test.log) · [환경](../evidence/native/environment.txt)
+미검증/미구현: 원격 CI, 별도 WSL/Pi/ARM 장비, Windows EXE, 공개 웹 서버, 2D/3D 그래프, Unicode/mouse TUI, 디스크 history/workspace·trace import, 실시간 CPU step, AVX/GPU, 전체 정의역 올바른 반올림·완전한 메모리 안전의 형식 증명.

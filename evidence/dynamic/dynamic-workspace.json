@@ -135,7 +135,7 @@
   "failure_count": 0,
   "failures": [],
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "evidence": {
     "allocator": {
       "successful_mappings": 216,
@@ -340,7 +340,7 @@
         ],
         "execution_uid": 65534,
         "cases": 2,
-        "binary_sha256": "9db2c13786115e25f90b62d3fbd2e292cb08ab82e530a2cf3d343bf5265696ad"
+        "binary_sha256": "3903b07897cda3ff9c043eccbae0363963b433eb975f4b75557e0336b4c09867"
       },
       {
         "binary": "asmlab-debug",
@@ -350,7 +350,7 @@
         ],
         "execution_uid": 65534,
         "cases": 2,
-        "binary_sha256": "d96ec7f0f73923f15594a914474cf1caedc4c2fb1a973ead855647385b414e42"
+        "binary_sha256": "839c832ccebe7cee7defafac8f2feb3a7513d053f1d12248695c8b3df108bd33"
       }
     ]
   },

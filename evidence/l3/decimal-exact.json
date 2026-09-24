@@ -18,13 +18,13 @@
   "failure_count": 0,
   "failures": [],
   "schema_version": 1,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "independent_cases": {
     "parse_cases": 10095,
     "format_cases": 14143,
     "roundtrip_cases": 14143
   },
-  "elapsed_seconds": 1.013,
+  "elapsed_seconds": 1.912,
   "oracle": "Exact rational neighboring-binary64 midpoint intervals; Decimal exact quantization; Python spelling cross-check.",
   "limitations": [
     "Finite corpus, not an exhaustive proof over all decimal inputs or all binary64 patterns.",

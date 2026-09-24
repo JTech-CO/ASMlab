@@ -13,7 +13,7 @@
 %define NS 128
 %define VS 64
 %define SS 48
-%define TS 96
+%define TS 192
 %define N_TYPE 0
 %define N_OP 8
 %define N_LEFT 16
@@ -26,6 +26,7 @@
 %define N_ID 96
 %define N_POS 104
 %define N_NEXT 112
+%define N_END 120
 %define NUM 1
 %define VAR 2
 %define BINARY 3
@@ -76,4 +77,39 @@
 %define O_XORPD 12
 
 
+; Trace v2 preserves the first 96 bytes of the v1 capture layout.
+%define TR_SEQ 96
+%define TR_EXPR 104
+%define TR_START 112
+%define TR_END 120
+%define TR_STAGE 128
+%define TR_KIND 136
+%define TR_K 144
+%define TR_ACTIVE 152
+%define TR_ROWS 160
+%define TR_COLS 168
+%define TR_HWLANES 176
+%define TR_SCHEMA 184
+%define ST_NONE 0
+%define ST_ELEMENTWISE 1
+%define ST_NEGATE 2
+%define ST_TRANSPOSE 3
+%define ST_SQRT 4
+%define ST_SUM 5
+%define ST_DOT_PRODUCT 6
+%define ST_DOT_ACCUMULATE 7
+%define ST_DOT_REDUCE 8
+%define ST_TRIG_REDUCE 9
+%define ST_TRIG_POLYNOMIAL 10
+%define ST_TRIG_RECONSTRUCT 11
+%define ST_LOG_NORMALIZE 12
+%define ST_LOG_TRANSFORM 13
+%define ST_LOG_POLYNOMIAL 14
+%define ST_LOG_RECONSTRUCT 15
+%define ST_POWER 16
+%define ST_LINSPACE 17
+%define ST_INDEX 18
+%define KIND_OUTPUT 1
+%define KIND_INPUT 2
+%define KIND_MATMUL 3
 %endif

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "binary": "asmlab-libc-reference",
   "seed": 20260922,
+  "numeric_mode": "default",
   "case_count": 14410,
   "group_counts": {
     "sin": 3009,
@@ -121,7 +122,7 @@
     }
   },
   "reference": "host Python standard-library math and direct scalar formulas",
-  "elapsed_seconds": 0.26,
+  "elapsed_seconds": 1.31,
   "limitations": [
     "Finite seeded tests are not a proof of correct rounding.",
     "Fuzz tests check bounded execution and structured output, not all semantics.",
